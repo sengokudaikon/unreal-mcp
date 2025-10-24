@@ -17,6 +17,14 @@
 
 namespace UnrealMCP {
 	auto FBlueprintService::SpawnActorBlueprint(const FBlueprintSpawnParams& Params) -> TResult<AActor*> {
+		// Validate input parameters
+		if (Params.BlueprintName.IsEmpty()) {
+			return TResult<AActor*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (Params.ActorName.IsEmpty()) {
+			return TResult<AActor*>::Failure(TEXT("Actor name cannot be empty"));
+		}
+
 		// Find blueprint
 		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(Params.BlueprintName);
 		if (!Blueprint) {
@@ -210,6 +218,17 @@ namespace UnrealMCP {
 	}
 
 	auto FBlueprintService::AddComponent(const FComponentParams& Params) -> TResult<UBlueprint*> {
+		// Validate input parameters
+		if (Params.BlueprintName.IsEmpty()) {
+			return TResult<UBlueprint*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (Params.ComponentName.IsEmpty()) {
+			return TResult<UBlueprint*>::Failure(TEXT("Component name cannot be empty"));
+		}
+		if (Params.ComponentType.IsEmpty()) {
+			return TResult<UBlueprint*>::Failure(TEXT("Component type cannot be empty"));
+		}
+
 		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(Params.BlueprintName);
 		if (!Blueprint) {
 			return TResult<UBlueprint*>::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *Params.BlueprintName)
@@ -293,6 +312,17 @@ namespace UnrealMCP {
 		const FString& ComponentName,
 		const FPropertyParams& PropertyParams
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (ComponentName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Component name cannot be empty"));
+		}
+		if (PropertyParams.PropertyName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Property name cannot be empty"));
+		}
+
 		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
 		if (!Blueprint) {
 			return FVoidResult::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
@@ -336,6 +366,14 @@ namespace UnrealMCP {
 	}
 
 	auto FBlueprintService::SetPhysicsProperties(const FPhysicsParams& Params) -> FVoidResult {
+		// Validate input parameters
+		if (Params.BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (Params.ComponentName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Component name cannot be empty"));
+		}
+
 		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(Params.BlueprintName);
 		if (!Blueprint) {
 			return FVoidResult::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *Params.BlueprintName));
@@ -386,6 +424,17 @@ namespace UnrealMCP {
 		const FString& StaticMesh,
 		const TOptional<FString>& Material
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (ComponentName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Component name cannot be empty"));
+		}
+		if (StaticMesh.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Static mesh path cannot be empty"));
+		}
+
 		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
 		if (!Blueprint) {
 			return FVoidResult::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
@@ -433,6 +482,14 @@ namespace UnrealMCP {
 		const FString& BlueprintName,
 		const FPropertyParams& PropertyParams
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (PropertyParams.PropertyName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Property name cannot be empty"));
+		}
+
 		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
 		if (!Blueprint) {
 			return FVoidResult::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
@@ -469,6 +526,10 @@ namespace UnrealMCP {
 		const FString& BlueprintName,
 		const TSharedPtr<FJsonObject>& PropertyParams
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
 		if (!PropertyParams.IsValid()) {
 			return FVoidResult::Failure(TEXT("Invalid property parameters"));
 		}

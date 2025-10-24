@@ -206,4 +206,18 @@ namespace UnrealMCP
 		/** Parse from JSON parameters */
 		static TResult<FAddMappingParams> FromJson(const TSharedPtr<FJsonObject>& Json);
 	};
+
+	/**
+	 * Parameters for setting static mesh properties on a component
+	 */
+	struct FStaticMeshParams
+	{
+		FString BlueprintName;
+		FString ComponentName;
+		FString StaticMesh;
+		TOptional<FString> Material;
+
+		/** Parse from JSON parameters */
+		static TResult<FStaticMeshParams> FromJson(const TSharedPtr<FJsonObject>& Json);
+	};
 }

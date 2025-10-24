@@ -1,4 +1,5 @@
-#include "Commands/CreateBlueprint.h"
+#include "Commands/Blueprint/CreateBlueprint.h"
+
 #include "Commands/CommonUtils.h"
 #include "Services/BlueprintCreationService.h"
 #include "Core/MCPTypes.h"

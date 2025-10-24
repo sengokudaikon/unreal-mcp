@@ -1,9 +1,10 @@
-﻿#include "Commands/CommonUtils.h"
-#include "Commands/CreateBlueprint.h"
+﻿#include "Commands/Blueprint/CompileBlueprint.h"
+
+#include "Commands/CommonUtils.h"
 #include "Core/Result.h"
 #include "Services/BlueprintCreationService.h"
 
-auto FCreateBlueprint::Handle(
+auto FCompileBlueprint::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
 	FString BlueprintName;
@@ -11,7 +12,7 @@ auto FCreateBlueprint::Handle(
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
 	}
 
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FBlueprintCreationService::CompileBlueprint(BlueprintName);
 
 	if (Result.IsFailure()) {

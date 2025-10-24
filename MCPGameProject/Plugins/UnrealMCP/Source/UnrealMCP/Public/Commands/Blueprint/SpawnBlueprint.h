@@ -1,11 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Json.h"
 
 /**
- * Command handler for blueprint spawning operations
- * Thin layer that converts JSON to typed parameters and delegates to BlueprintService
+ * Handles operations for spawning blueprint actors dynamically.
  */
 class UNREALMCP_API FSpawnBlueprint
 {

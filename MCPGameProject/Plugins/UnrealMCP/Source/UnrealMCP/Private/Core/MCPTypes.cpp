@@ -398,4 +398,34 @@ namespace UnrealMCP {
 
 		return TResult<FAddMappingParams>::Success(MoveTemp(Params));
 	}
+
+	auto FStaticMeshParams::FromJson(const TSharedPtr<FJsonObject>& Json) -> TResult<FStaticMeshParams> {
+		if (!Json.IsValid()) {
+			return TResult<FStaticMeshParams>::Failure(TEXT("Invalid JSON object"));
+		}
+
+		FStaticMeshParams Params;
+
+		// Required fields
+		if (!Json->TryGetStringField(TEXT("blueprint_name"), Params.BlueprintName)) {
+			return TResult<FStaticMeshParams>::Failure(TEXT("Missing 'blueprint_name' parameter"));
+		}
+
+		if (!Json->TryGetStringField(TEXT("component_name"), Params.ComponentName)) {
+			return TResult<FStaticMeshParams>::Failure(TEXT("Missing 'component_name' parameter"));
+		}
+
+		// Optional fields
+		FString StaticMesh;
+		if (Json->TryGetStringField(TEXT("static_mesh"), StaticMesh)) {
+			Params.StaticMesh = StaticMesh;
+		}
+
+		FString Material;
+		if (Json->TryGetStringField(TEXT("material"), Material)) {
+			Params.Material = Material;
+		}
+
+		return TResult<FStaticMeshParams>::Success(MoveTemp(Params));
+	}
 }

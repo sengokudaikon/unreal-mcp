@@ -2,11 +2,11 @@
 
 #include "CoreMinimal.h"
 
-class UNREALMCP_API FCompileBlueprint {
+class UNREALMCP_API FSetStaticMeshProperties {
 public:
-	FCompileBlueprint() = default;
+	FSetStaticMeshProperties() = default;
 
-	~FCompileBlueprint() = default;
+	~FSetStaticMeshProperties() = default;
 
 	static auto Handle(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
 };

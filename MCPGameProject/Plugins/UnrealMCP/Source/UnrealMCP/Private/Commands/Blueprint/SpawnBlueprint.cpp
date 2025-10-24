@@ -1,4 +1,4 @@
-#include "Commands/SpawnBlueprint.h"
+#include "Commands/Blueprint/SpawnBlueprint.h"
 
 #include "Commands/CommonUtils.h"
 #include "Services/BlueprintService.h"

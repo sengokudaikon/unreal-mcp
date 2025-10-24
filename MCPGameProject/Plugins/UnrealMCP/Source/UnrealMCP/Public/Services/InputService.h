@@ -6,6 +6,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class UEnhancedInputLocalPlayerSubsystem;
 
 namespace UnrealMCP {
 	/**
@@ -69,6 +70,41 @@ namespace UnrealMCP {
 		 */
 		static auto RemoveMappingFromContext(const FAddMappingParams& Params) -> FVoidResult;
 
+		/**
+		 * Apply a mapping context to the local player's input subsystem at runtime
+		 *
+		 * Loads the mapping context and adds it to the Enhanced Input subsystem
+		 * for the first player controller with the specified priority.
+		 *
+		 * Params.ContextPath - Full asset path to the input mapping context
+		 * Params.Priority - Priority for the mapping context (higher priority = evaluated first)
+		 *
+		 * Returns Success if the context was applied, or Failure with an error message
+		 */
+		static auto ApplyMappingContext(const FApplyMappingContextParams& Params) -> FVoidResult;
+
+		/**
+		 * Remove a mapping context from the local player's input subsystem at runtime
+		 *
+		 * Loads the mapping context and removes it from the Enhanced Input subsystem
+		 * for the first player controller.
+		 *
+		 * Params.ContextPath - Full asset path to the input mapping context
+		 *
+		 * Returns Success if the context was removed, or Failure with an error message
+		 */
+		static auto RemoveMappingContext(const FRemoveMappingContextParams& Params) -> FVoidResult;
+
+		/**
+		 * Clear all mapping contexts from the local player's input subsystem at runtime
+		 *
+		 * Removes all mapping contexts from the Enhanced Input subsystem
+		 * for the first player controller.
+		 *
+		 * Returns Success if contexts were cleared, or Failure with an error message
+		 */
+		static auto ClearAllMappingContexts() -> FVoidResult;
+
 	private:
 		/**
 		 * Helper to parse value type string to EInputActionValueType enum
@@ -93,5 +129,11 @@ namespace UnrealMCP {
 		 * Returns true if save succeeded, false otherwise
 		 */
 		static auto SavePackage(UPackage* Package, UObject* Asset, const FString& PackagePath) -> bool;
+
+		/**
+		 * Helper to get the Enhanced Input subsystem from the first player controller
+		 * Returns the subsystem, or nullptr with the provided error reference set
+		 */
+		static UEnhancedInputLocalPlayerSubsystem* GetInputSubsystem(FString& OutError);
 	};
 }

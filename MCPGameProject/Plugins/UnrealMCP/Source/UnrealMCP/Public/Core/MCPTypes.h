@@ -208,6 +208,29 @@ namespace UnrealMCP
 	};
 
 	/**
+	 * Parameters for applying a mapping context at runtime
+	 */
+	struct FApplyMappingContextParams
+	{
+		FString ContextPath;
+		int32 Priority = 0;
+
+		/** Parse from JSON parameters */
+		static TResult<FApplyMappingContextParams> FromJson(const TSharedPtr<FJsonObject>& Json);
+	};
+
+	/**
+	 * Parameters for removing a mapping context at runtime
+	 */
+	struct FRemoveMappingContextParams
+	{
+		FString ContextPath;
+
+		/** Parse from JSON parameters */
+		static TResult<FRemoveMappingContextParams> FromJson(const TSharedPtr<FJsonObject>& Json);
+	};
+
+	/**
 	 * Parameters for setting static mesh properties on a component
 	 */
 	struct FStaticMeshParams

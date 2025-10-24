@@ -428,4 +428,39 @@ namespace UnrealMCP {
 
 		return TResult<FStaticMeshParams>::Success(MoveTemp(Params));
 	}
+
+	auto FApplyMappingContextParams::FromJson(const TSharedPtr<FJsonObject>& Json) -> TResult<FApplyMappingContextParams> {
+		if (!Json.IsValid()) {
+			return TResult<FApplyMappingContextParams>::Failure(TEXT("Invalid JSON object"));
+		}
+
+		FApplyMappingContextParams Params;
+
+		// Required fields
+		if (!Json->TryGetStringField(TEXT("context_path"), Params.ContextPath)) {
+			return TResult<FApplyMappingContextParams>::Failure(TEXT("Missing 'context_path' parameter"));
+		}
+
+		// Optional fields with defaults
+		if (Json->HasField(TEXT("priority"))) {
+			Params.Priority = static_cast<int32>(Json->GetNumberField(TEXT("priority")));
+		}
+
+		return TResult<FApplyMappingContextParams>::Success(MoveTemp(Params));
+	}
+
+	auto FRemoveMappingContextParams::FromJson(const TSharedPtr<FJsonObject>& Json) -> TResult<FRemoveMappingContextParams> {
+		if (!Json.IsValid()) {
+			return TResult<FRemoveMappingContextParams>::Failure(TEXT("Invalid JSON object"));
+		}
+
+		FRemoveMappingContextParams Params;
+
+		// Required fields
+		if (!Json->TryGetStringField(TEXT("context_path"), Params.ContextPath)) {
+			return TResult<FRemoveMappingContextParams>::Failure(TEXT("Missing 'context_path' parameter"));
+		}
+
+		return TResult<FRemoveMappingContextParams>::Success(MoveTemp(Params));
+	}
 }

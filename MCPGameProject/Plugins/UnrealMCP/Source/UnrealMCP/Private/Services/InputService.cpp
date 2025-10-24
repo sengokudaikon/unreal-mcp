@@ -2,9 +2,13 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "EnhancedInputLibrary.h"
+#include "EnhancedInputSubsystems.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "UObject/SavePackage.h"
 #include "Misc/Paths.h"
+#include "Editor.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 
 namespace UnrealMCP {
 
@@ -195,6 +199,80 @@ namespace UnrealMCP {
 		SaveArgs.SaveFlags = SAVE_NoError;
 
 		return UPackage::SavePackage(Package, Asset, *PackageFileName, SaveArgs);
+	}
+
+	auto FInputService::ApplyMappingContext(const FApplyMappingContextParams& Params) -> FVoidResult {
+		if (Params.ContextPath.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Input mapping context path cannot be empty"));
+		}
+
+		FString Error;
+		UInputMappingContext* MappingContext = LoadInputMappingContext(Params.ContextPath, Error);
+		if (!MappingContext) {
+			return FVoidResult::Failure(Error);
+		}
+
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = GetInputSubsystem(Error);
+		if (!Subsystem) {
+			return FVoidResult::Failure(Error);
+		}
+
+		Subsystem->AddMappingContext(MappingContext, Params.Priority);
+		return FVoidResult::Success();
+	}
+
+	auto FInputService::RemoveMappingContext(const FRemoveMappingContextParams& Params) -> FVoidResult {
+		if (Params.ContextPath.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Input mapping context path cannot be empty"));
+		}
+
+		FString Error;
+		UInputMappingContext* MappingContext = LoadInputMappingContext(Params.ContextPath, Error);
+		if (!MappingContext) {
+			return FVoidResult::Failure(Error);
+		}
+
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = GetInputSubsystem(Error);
+		if (!Subsystem) {
+			return FVoidResult::Failure(Error);
+		}
+
+		Subsystem->RemoveMappingContext(MappingContext);
+		return FVoidResult::Success();
+	}
+
+	auto FInputService::ClearAllMappingContexts() -> FVoidResult {
+		FString Error;
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = GetInputSubsystem(Error);
+		if (!Subsystem) {
+			return FVoidResult::Failure(Error);
+		}
+
+		Subsystem->ClearAllMappings();
+		return FVoidResult::Success();
+	}
+
+	auto FInputService::GetInputSubsystem(FString& OutError) -> UEnhancedInputLocalPlayerSubsystem* {
+		UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
+		if (!World) {
+			OutError = TEXT("Failed to get world");
+			return nullptr;
+		}
+
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (!PlayerController) {
+			OutError = TEXT("No player controller found");
+			return nullptr;
+		}
+
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+			PlayerController->GetLocalPlayer());
+		if (!Subsystem) {
+			OutError = TEXT("Failed to get Enhanced Input Subsystem");
+			return nullptr;
+		}
+
+		return Subsystem;
 	}
 
 } // namespace UnrealMCP

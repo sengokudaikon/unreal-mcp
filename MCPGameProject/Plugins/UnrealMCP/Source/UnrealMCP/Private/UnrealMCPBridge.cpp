@@ -57,6 +57,7 @@
 #include "Commands/UnrealMCPProjectCommands.h"
 #include "Commands/CommonUtils.h"
 #include "Commands/UnrealMCPUMGCommands.h"
+#include "Commands/UnrealMCPEnhancedInputCommands.h"
 
 // Default settings
 #define MCP_SERVER_HOST "127.0.0.1"
@@ -69,6 +70,7 @@ UUnrealMCPBridge::UUnrealMCPBridge()
     BlueprintNodeCommands = MakeShared<FUnrealMCPBlueprintNodeCommands>();
     ProjectCommands = MakeShared<FUnrealMCPProjectCommands>();
     UMGCommands = MakeShared<FUnrealMCPUMGCommands>();
+    EnhancedInputCommands = MakeShared<FUnrealMCPEnhancedInputCommands>();
 }
 
 UUnrealMCPBridge::~UUnrealMCPBridge()
@@ -78,6 +80,7 @@ UUnrealMCPBridge::~UUnrealMCPBridge()
     BlueprintNodeCommands.Reset();
     ProjectCommands.Reset();
     UMGCommands.Reset();
+    EnhancedInputCommands.Reset();
 }
 
 // Initialize subsystem
@@ -263,9 +266,13 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
             {
                 ResultJson = BlueprintNodeCommands->HandleCommand(CommandType, Params);
             }
-            // Project Commands (Legacy and Enhanced Input)
-            else if (CommandType == TEXT("create_input_mapping") ||
-                     CommandType == TEXT("create_enhanced_input_action") ||
+            // Project Commands (Legacy Input)
+            else if (CommandType == TEXT("create_input_mapping"))
+            {
+                ResultJson = ProjectCommands->HandleCommand(CommandType, Params);
+            }
+            // Enhanced Input Commands
+            else if (CommandType == TEXT("create_enhanced_input_action") ||
                      CommandType == TEXT("create_input_mapping_context") ||
                      CommandType == TEXT("add_enhanced_input_mapping") ||
                      CommandType == TEXT("remove_enhanced_input_mapping") ||
@@ -273,7 +280,7 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
                      CommandType == TEXT("remove_mapping_context") ||
                      CommandType == TEXT("clear_all_mapping_contexts"))
             {
-                ResultJson = ProjectCommands->HandleCommand(CommandType, Params);
+                ResultJson = EnhancedInputCommands->HandleCommand(CommandType, Params);
             }
             // UMG Commands
             else if (CommandType == TEXT("create_umg_widget_blueprint") ||

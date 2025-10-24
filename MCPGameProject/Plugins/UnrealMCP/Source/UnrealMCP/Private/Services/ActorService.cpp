@@ -11,6 +11,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Editor.h"
 #include "Subsystems/EditorActorSubsystem.h"
+#include "ScopedTransaction.h"
+#include "Components/SceneComponent.h"
 
 namespace UnrealMCP {
 
@@ -110,17 +112,33 @@ namespace UnrealMCP {
 			return FVoidResult::Failure(FString::Printf(TEXT("Actor not found: %s"), *ActorName));
 		}
 
-		if (Location.IsSet()) {
-			Actor->SetActorLocation(Location.GetValue());
+		// Use a scoped transaction to ensure proper editor integration
+		FScopedTransaction Transaction(FText::FromString(TEXT("Set Actor Transform")));
+
+		Actor->Modify();
+
+		// Get the root component - this is the key for transform operations
+		USceneComponent* RootComponent = Actor->GetRootComponent();
+		if (!RootComponent) {
+			// Create a default scene component as root for actors that don't have one
+			USceneComponent* NewRoot = NewObject<USceneComponent>(Actor);
+			Actor->SetRootComponent(NewRoot);
+			NewRoot->RegisterComponent();
+			RootComponent = NewRoot;
 		}
 
-		if (Rotation.IsSet()) {
-			Actor->SetActorRotation(Rotation.GetValue());
-		}
+		RootComponent->Modify();
 
-		if (Scale.IsSet()) {
-			Actor->SetActorScale3D(Scale.GetValue());
-		}
+		FTransform CurrentTransform = RootComponent->GetRelativeTransform();
+		FVector NewLocation = Location.IsSet() ? Location.GetValue() : CurrentTransform.GetLocation();
+		FRotator NewRotation = Rotation.IsSet() ? Rotation.GetValue() : CurrentTransform.GetRotation().Rotator();
+		FVector NewScale = Scale.IsSet() ? Scale.GetValue() : CurrentTransform.GetScale3D();
+
+		FTransform NewTransform(NewRotation, NewLocation, NewScale);
+		RootComponent->SetRelativeTransform(NewTransform, false, nullptr, ETeleportType::ResetPhysics);
+
+		RootComponent->UpdateComponentToWorld();
+		Actor->UpdateAllReplicatedComponents();
 
 		return FVoidResult::Success();
 	}
@@ -155,29 +173,40 @@ namespace UnrealMCP {
 			return FVoidResult::Failure(FString::Printf(TEXT("Actor not found: %s"), *ActorName));
 		}
 
-		// Find the property
 		FProperty* Property = FindFProperty<FProperty>(Actor->GetClass(), *PropertyName);
 		if (!Property) {
 			return FVoidResult::Failure(FString::Printf(TEXT("Property not found: %s"), *PropertyName));
 		}
 
-		// Set property based on type
-		// This is a simplified version - full implementation would handle all property types
 		if (FBoolProperty* BoolProp = CastField<FBoolProperty>(Property)) {
-			bool Value = PropertyValue->AsBool();
-			BoolProp->SetPropertyValue_InContainer(Actor, Value);
+			bool BoolValue;
+			if (!PropertyValue->TryGetBool(BoolValue)) {
+				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a boolean value"), *PropertyName));
+			}
+			BoolProp->SetPropertyValue_InContainer(Actor, BoolValue);
 		}
 		else if (FFloatProperty* FloatProp = CastField<FFloatProperty>(Property)) {
-			float Value = PropertyValue->AsNumber();
+			double NumberValue;
+			if (!PropertyValue->TryGetNumber(NumberValue)) {
+				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a number value"), *PropertyName));
+			}
+			float Value = static_cast<float>(NumberValue);
 			FloatProp->SetPropertyValue_InContainer(Actor, Value);
 		}
 		else if (FIntProperty* IntProp = CastField<FIntProperty>(Property)) {
-			int32 Value = FMath::RoundToInt(PropertyValue->AsNumber());
+			double NumberValue;
+			if (!PropertyValue->TryGetNumber(NumberValue)) {
+				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a number value"), *PropertyName));
+			}
+			int32 Value = FMath::RoundToInt(NumberValue);
 			IntProp->SetPropertyValue_InContainer(Actor, Value);
 		}
 		else if (FStrProperty* StrProp = CastField<FStrProperty>(Property)) {
-			FString Value = PropertyValue->AsString();
-			StrProp->SetPropertyValue_InContainer(Actor, Value);
+			FString StringValue;
+			if (!PropertyValue->TryGetString(StringValue)) {
+				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a string value"), *PropertyName));
+			}
+			StrProp->SetPropertyValue_InContainer(Actor, StringValue);
 		}
 		else {
 			return FVoidResult::Failure(FString::Printf(TEXT("Unsupported property type: %s"), *PropertyName));

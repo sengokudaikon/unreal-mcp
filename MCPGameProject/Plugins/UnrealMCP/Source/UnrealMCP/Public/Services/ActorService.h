@@ -58,6 +58,12 @@ namespace UnrealMCP {
 		/**
 		 * Set an actor's transform
 		 *
+		 * Note: Transform operations work best with actors that have proper scene components
+		 * (like StaticMeshActor, PointLight, etc.). Basic AActor instances may not respond
+		 * to transform changes if they don't have root components. This method will automatically
+		 * create a root component for actors that don't have one, but for predictable transform
+		 * behavior, use actor types that inherently support transforms.
+		 *
 		 * @param ActorName Name of the actor
 		 * @param Location Optional new location
 		 * @param Rotation Optional new rotation

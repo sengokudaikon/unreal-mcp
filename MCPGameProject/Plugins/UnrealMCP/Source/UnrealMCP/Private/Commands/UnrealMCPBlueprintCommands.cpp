@@ -1,7 +1,7 @@
 #include "Commands/UnrealMCPBlueprintCommands.h"
-#include "Commands/UnrealMCPBlueprintSpawnCommands.h"
-#include "Commands/UnrealMCPBlueprintCreationCommands.h"
-#include "Commands/UnrealMCPCommonUtils.h"
+#include "Commands/SpawnBlueprint.h"
+#include "Commands/CreateBlueprint.h"
+#include "Commands/CommonUtils.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "EdGraphSchema_K2.h"
@@ -30,7 +30,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCommand(const FString
 {
     if (CommandType == TEXT("create_blueprint"))
     {
-        return FUnrealMCPBlueprintCreationCommands::HandleCommand(CommandType, Params);
+        return FCreateBlueprint::Handle(Params);
     }
     else if (CommandType == TEXT("add_component_to_blueprint"))
     {
@@ -46,11 +46,11 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCommand(const FString
     }
     else if (CommandType == TEXT("compile_blueprint"))
     {
-        return FUnrealMCPBlueprintCreationCommands::HandleCommand(CommandType, Params);
+        return FCreateBlueprint::Handle(Params);
     }
     else if (CommandType == TEXT("spawn_blueprint_actor"))
     {
-        return FUnrealMCPBlueprintSpawnCommands::HandleSpawnBlueprintActor(Params);
+        return FSpawnBlueprint::Handle(Params);
     }
     else if (CommandType == TEXT("set_blueprint_property"))
     {
@@ -65,7 +65,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCommand(const FString
         return HandleSetPawnProperties(Params);
     }
     
-    return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown blueprint command: %s"), *CommandType));
+    return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown blueprint command: %s"), *CommandType));
 }
 
 
@@ -75,19 +75,19 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleAddComponentToBluepri
     FString BlueprintName;
     if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
     }
 
     FString ComponentType;
     if (!Params->TryGetStringField(TEXT("component_type"), ComponentType))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_type' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'component_type' parameter"));
     }
 
     FString ComponentName;
     if (!Params->TryGetStringField(TEXT("component_name"), ComponentName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
     }
 
     // Extract arrays for transform
@@ -95,19 +95,19 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleAddComponentToBluepri
 
     if (Params->HasField(TEXT("location")))
     {
-        FVector LocVec = FUnrealMCPCommonUtils::GetVectorFromJson(Params, TEXT("location"));
+        FVector LocVec = FCommonUtils::GetVectorFromJson(Params, TEXT("location"));
         Location = {static_cast<float>(LocVec.X), static_cast<float>(LocVec.Y), static_cast<float>(LocVec.Z)};
     }
 
     if (Params->HasField(TEXT("rotation")))
     {
-        FRotator Rot = FUnrealMCPCommonUtils::GetRotatorFromJson(Params, TEXT("rotation"));
+        FRotator Rot = FCommonUtils::GetRotatorFromJson(Params, TEXT("rotation"));
         Rotation = {static_cast<float>(Rot.Pitch), static_cast<float>(Rot.Yaw), static_cast<float>(Rot.Roll)};
     }
 
     if (Params->HasField(TEXT("scale")))
     {
-        FVector ScaleVec = FUnrealMCPCommonUtils::GetVectorFromJson(Params, TEXT("scale"));
+        FVector ScaleVec = FCommonUtils::GetVectorFromJson(Params, TEXT("scale"));
         Scale = {static_cast<float>(ScaleVec.X), static_cast<float>(ScaleVec.Y), static_cast<float>(ScaleVec.Z)};
     }
 
@@ -135,19 +135,19 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
     FString BlueprintName;
     if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
     }
 
     FString ComponentName;
     if (!Params->TryGetStringField(TEXT("component_name"), ComponentName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
     }
 
     FString PropertyName;
     if (!Params->TryGetStringField(TEXT("property_name"), PropertyName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'property_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'property_name' parameter"));
     }
 
     // Log all input parameters for debugging
@@ -178,11 +178,11 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
     }
 
     // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
     if (!Blueprint)
     {
         UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Blueprint not found: %s"), *BlueprintName);
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
     else
     {
@@ -198,7 +198,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
     if (!Blueprint->SimpleConstructionScript)
     {
         UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - SimpleConstructionScript is NULL for blueprint %s"), *BlueprintName);
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Invalid blueprint construction script"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Invalid blueprint construction script"));
     }
     
     for (USCS_Node* Node : Blueprint->SimpleConstructionScript->GetAllNodes())
@@ -221,7 +221,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
     if (!ComponentNode)
     {
         UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Component not found: %s"), *ComponentName);
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Component not found: %s"), *ComponentName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Component not found: %s"), *ComponentName));
     }
     else
     {
@@ -235,7 +235,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
     if (!ComponentTemplate)
     {
         UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Component template is NULL for %s"), *ComponentName);
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Invalid component template"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Invalid component template"));
     }
 
     // Check if this is a Spring Arm component and log special debug info
@@ -262,7 +262,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
             if (!Property)
             {
                 UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Property %s not found on SpringArm component"), *PropertyName);
-                return FUnrealMCPCommonUtils::CreateErrorResponse(
+                return FCommonUtils::CreateErrorResponse(
                     FString::Printf(TEXT("Property %s not found on SpringArm component"), *PropertyName));
             }
 
@@ -369,7 +369,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
             else
             {
                 UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Failed to set SpringArm property %s"), *PropertyName);
-                return FUnrealMCPCommonUtils::CreateErrorResponse(
+                return FCommonUtils::CreateErrorResponse(
                     FString::Printf(TEXT("Failed to set SpringArm property %s"), *PropertyName));
             }
         }
@@ -397,7 +397,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
                 UE_LOG(LogTemp, Warning, TEXT("  - %s (%s)"), *Prop->GetName(), *Prop->GetCPPType());
             }
             
-            return FUnrealMCPCommonUtils::CreateErrorResponse(
+            return FCommonUtils::CreateErrorResponse(
                 FString::Printf(TEXT("Property %s not found on component %s"), *PropertyName, *ComponentName));
         }
         else
@@ -468,7 +468,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
                     // Handle other struct properties using default handler
                     UE_LOG(LogTemp, Log, TEXT("SetComponentProperty - Using generic struct handler for %s"), 
                         *PropertyName);
-                    bSuccess = FUnrealMCPCommonUtils::SetObjectProperty(ComponentTemplate, PropertyName, JsonValue, ErrorMessage);
+                    bSuccess = FCommonUtils::SetObjectProperty(ComponentTemplate, PropertyName, JsonValue, ErrorMessage);
                     if (!bSuccess)
                     {
                         UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Failed to set struct property: %s"), *ErrorMessage);
@@ -573,7 +573,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
                 // Handle all other property types using default handler
                 UE_LOG(LogTemp, Log, TEXT("SetComponentProperty - Using generic property handler for %s (Type: %s)"), 
                     *PropertyName, *Property->GetCPPType());
-                bSuccess = FUnrealMCPCommonUtils::SetObjectProperty(ComponentTemplate, PropertyName, JsonValue, ErrorMessage);
+                bSuccess = FCommonUtils::SetObjectProperty(ComponentTemplate, PropertyName, JsonValue, ErrorMessage);
                 if (!bSuccess)
                 {
                     UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Failed to set property: %s"), *ErrorMessage);
@@ -583,13 +583,13 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
         catch (const std::exception& Ex)
         {
             UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - EXCEPTION: %s"), ANSI_TO_TCHAR(Ex.what()));
-            return FUnrealMCPCommonUtils::CreateErrorResponse(
+            return FCommonUtils::CreateErrorResponse(
                 FString::Printf(TEXT("Exception while setting property %s: %s"), *PropertyName, ANSI_TO_TCHAR(Ex.what())));
         }
         catch (...)
         {
             UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - UNKNOWN EXCEPTION occurred while setting property %s"), *PropertyName);
-            return FUnrealMCPCommonUtils::CreateErrorResponse(
+            return FCommonUtils::CreateErrorResponse(
                 FString::Printf(TEXT("Unknown exception while setting property %s"), *PropertyName));
         }
 
@@ -610,12 +610,12 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(
         {
             UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Failed to set property %s: %s"), 
                 *PropertyName, *ErrorMessage);
-            return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
+            return FCommonUtils::CreateErrorResponse(ErrorMessage);
         }
     }
 
     UE_LOG(LogTemp, Error, TEXT("SetComponentProperty - Missing 'property_value' parameter"));
-    return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'property_value' parameter"));
+    return FCommonUtils::CreateErrorResponse(TEXT("Missing 'property_value' parameter"));
 }
 
 TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPhysicsProperties(const TSharedPtr<FJsonObject>& Params)
@@ -624,20 +624,20 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPhysicsProperties(
     FString BlueprintName;
     if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
     }
 
     FString ComponentName;
     if (!Params->TryGetStringField(TEXT("component_name"), ComponentName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
     }
 
     // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
     if (!Blueprint)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
 
     // Find the component
@@ -653,13 +653,13 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPhysicsProperties(
 
     if (!ComponentNode)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Component not found: %s"), *ComponentName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Component not found: %s"), *ComponentName));
     }
 
     UPrimitiveComponent* PrimComponent = Cast<UPrimitiveComponent>(ComponentNode->ComponentTemplate);
     if (!PrimComponent)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Component is not a primitive component"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Component is not a primitive component"));
     }
 
     // Set physics properties
@@ -701,27 +701,27 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetBlueprintProperty(
     FString BlueprintName;
     if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
     }
 
     FString PropertyName;
     if (!Params->TryGetStringField(TEXT("property_name"), PropertyName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'property_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'property_name' parameter"));
     }
 
     // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
     if (!Blueprint)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
 
     // Get the default object
     UObject* DefaultObject = Blueprint->GeneratedClass->GetDefaultObject();
     if (!DefaultObject)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get default object"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Failed to get default object"));
     }
 
     // Set the property value
@@ -730,7 +730,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetBlueprintProperty(
         TSharedPtr<FJsonValue> JsonValue = Params->Values.FindRef(TEXT("property_value"));
         
         FString ErrorMessage;
-        if (FUnrealMCPCommonUtils::SetObjectProperty(DefaultObject, PropertyName, JsonValue, ErrorMessage))
+        if (FCommonUtils::SetObjectProperty(DefaultObject, PropertyName, JsonValue, ErrorMessage))
         {
             // Mark the blueprint as modified
             FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
@@ -742,11 +742,11 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetBlueprintProperty(
         }
         else
         {
-            return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
+            return FCommonUtils::CreateErrorResponse(ErrorMessage);
         }
     }
 
-    return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'property_value' parameter"));
+    return FCommonUtils::CreateErrorResponse(TEXT("Missing 'property_value' parameter"));
 }
 
 TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetStaticMeshProperties(const TSharedPtr<FJsonObject>& Params)
@@ -755,20 +755,20 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetStaticMeshProperti
     FString BlueprintName;
     if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
     }
 
     FString ComponentName;
     if (!Params->TryGetStringField(TEXT("component_name"), ComponentName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
     }
 
     // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
     if (!Blueprint)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
 
     // Find the component
@@ -784,13 +784,13 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetStaticMeshProperti
 
     if (!ComponentNode)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Component not found: %s"), *ComponentName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Component not found: %s"), *ComponentName));
     }
 
     UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(ComponentNode->ComponentTemplate);
     if (!MeshComponent)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Component is not a static mesh component"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Component is not a static mesh component"));
     }
 
     // Set static mesh properties
@@ -828,21 +828,21 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPawnProperties(con
     FString BlueprintName;
     if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
     }
 
     // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
     if (!Blueprint)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
 
     // Get the default object
     UObject* DefaultObject = Blueprint->GeneratedClass->GetDefaultObject();
     if (!DefaultObject)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get default object"));
+        return FCommonUtils::CreateErrorResponse(TEXT("Failed to get default object"));
     }
 
     // Track if any properties were set successfully
@@ -855,7 +855,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPawnProperties(con
         TSharedPtr<FJsonValue> AutoPossessValue = Params->Values.FindRef(TEXT("auto_possess_player"));
         
         FString ErrorMessage;
-        if (FUnrealMCPCommonUtils::SetObjectProperty(DefaultObject, TEXT("AutoPossessPlayer"), AutoPossessValue, ErrorMessage))
+        if (FCommonUtils::SetObjectProperty(DefaultObject, TEXT("AutoPossessPlayer"), AutoPossessValue, ErrorMessage))
         {
             bAnyPropertiesSet = true;
             TSharedPtr<FJsonObject> PropResultObj = MakeShared<FJsonObject>();
@@ -891,7 +891,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPawnProperties(con
             TSharedPtr<FJsonValue> Value = Params->Values.FindRef(ParamNames[i]);
             
             FString ErrorMessage;
-            if (FUnrealMCPCommonUtils::SetObjectProperty(DefaultObject, RotationProps[i], Value, ErrorMessage))
+            if (FCommonUtils::SetObjectProperty(DefaultObject, RotationProps[i], Value, ErrorMessage))
             {
                 bAnyPropertiesSet = true;
                 TSharedPtr<FJsonObject> PropResultObj = MakeShared<FJsonObject>();
@@ -914,7 +914,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPawnProperties(con
         TSharedPtr<FJsonValue> Value = Params->Values.FindRef(TEXT("can_be_damaged"));
         
         FString ErrorMessage;
-        if (FUnrealMCPCommonUtils::SetObjectProperty(DefaultObject, TEXT("bCanBeDamaged"), Value, ErrorMessage))
+        if (FCommonUtils::SetObjectProperty(DefaultObject, TEXT("bCanBeDamaged"), Value, ErrorMessage))
         {
             bAnyPropertiesSet = true;
             TSharedPtr<FJsonObject> PropResultObj = MakeShared<FJsonObject>();
@@ -938,7 +938,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPawnProperties(con
     else if (ResultsObj->Values.Num() == 0)
     {
         // No properties were specified
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("No properties specified to set"));
+        return FCommonUtils::CreateErrorResponse(TEXT("No properties specified to set"));
     }
 
     TSharedPtr<FJsonObject> ResponseObj = MakeShared<FJsonObject>();
@@ -959,10 +959,10 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::AddComponentToBlueprint(
     const TSharedPtr<FJsonObject>& ComponentProperties)
 {
     // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
     if (!Blueprint)
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
 
     // Create the component - dynamically find the component class by name
@@ -995,7 +995,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::AddComponentToBlueprint(
     // Verify that the class is a valid component type
     if (!ComponentClass || !ComponentClass->IsChildOf(UActorComponent::StaticClass()))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown component type: %s"), *ComponentType));
+        return FCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown component type: %s"), *ComponentType));
     }
 
     // Add the component to the blueprint
@@ -1040,7 +1040,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::AddComponentToBlueprint(
                 TSharedPtr<FJsonValue> PropertyValue = PropertyPair.Value;
 
                 FString ErrorMessage;
-                if (!FUnrealMCPCommonUtils::SetObjectProperty(NewNode->ComponentTemplate, PropertyName, PropertyValue, ErrorMessage))
+                if (!FCommonUtils::SetObjectProperty(NewNode->ComponentTemplate, PropertyName, PropertyValue, ErrorMessage))
                 {
                     UE_LOG(LogTemp, Warning, TEXT("Failed to set component property %s: %s"), *PropertyName, *ErrorMessage);
                 }
@@ -1061,5 +1061,5 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::AddComponentToBlueprint(
         return ResultObj;
     }
 
-    return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to add component to blueprint"));
+    return FCommonUtils::CreateErrorResponse(TEXT("Failed to add component to blueprint"));
 } 

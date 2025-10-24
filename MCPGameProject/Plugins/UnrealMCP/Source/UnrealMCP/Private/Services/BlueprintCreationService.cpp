@@ -1,17 +1,17 @@
 #include "Services/BlueprintCreationService.h"
-#include "Commands/UnrealMCPCommonUtils.h"
+#include "Commands/CommonUtils.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Factories/BlueprintFactory.h"
-#include "Kismet2/KismetEditorUtilities.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
 #include "EditorAssetLibrary.h"
+#include "Kismet2/KismetEditorUtilities.h"
 
 namespace UnrealMCP
 {
-	TResult<UBlueprint*> FBlueprintCreationService::CreateBlueprint(const FBlueprintCreationParams& Params)
+	auto FBlueprintCreationService::CreateBlueprint(const FBlueprintCreationParams& Params) -> TResult<UBlueprint*>
 	{
 		if (Params.Name.IsEmpty())
 		{
@@ -24,7 +24,7 @@ namespace UnrealMCP
 		if (UEditorAssetLibrary::DoesAssetExist(FullAssetPath))
 		{
 			return TResult<UBlueprint*>::Failure(
-				FString::Printf(TEXT("Blueprint already exists: %s"), *Params.Name)
+				FString::Printf(TEXT("Blueprint already exists at: %s"), *FullAssetPath)
 			);
 		}
 
@@ -33,7 +33,7 @@ namespace UnrealMCP
 		if (!ParentClass)
 		{
 			return TResult<UBlueprint*>::Failure(
-				FString::Printf(TEXT("Failed to resolve parent class: %s"), *Params.ParentClass)
+				FString::Printf(TEXT("Unable to resolve parent class: %s"), *Params.ParentClass)
 			);
 		}
 
@@ -76,155 +76,113 @@ namespace UnrealMCP
 		FAssetRegistryModule::AssetCreated(NewBlueprint);
 		Package->MarkPackageDirty();
 
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("BlueprintCreationService: Created blueprint '%s' with parent class '%s' at '%s'"),
+			*Params.Name,
+			*ParentClass->GetName(),
+			*FullAssetPath
+		);
+
 		return TResult<UBlueprint*>::Success(NewBlueprint);
 	}
 
-	TSharedPtr<FJsonObject> FBlueprintCreationService::CreateBlueprintAsJson(const FBlueprintCreationParams& Params)
-	{
-		TResult<UBlueprint*> Result = CreateBlueprint(Params);
-
-		if (Result.IsSuccess())
-		{
-			UBlueprint* Blueprint = Result.GetValue();
-			TSharedPtr<FJsonObject> ResponseObj = MakeShared<FJsonObject>();
-			ResponseObj->SetStringField(TEXT("name"), Params.Name);
-			ResponseObj->SetStringField(TEXT("path"), Params.PackagePath + Params.Name);
-			ResponseObj->SetStringField(TEXT("parent_class"), Blueprint->ParentClass ? *Blueprint->ParentClass->GetName() : TEXT("AActor"));
-			ResponseObj->SetBoolField(TEXT("success"), true);
-			return ResponseObj;
-		}
-
-		return CreateErrorResponse(Result.GetError());
-	}
-
-	FVoidResult FBlueprintCreationService::CompileBlueprint(const FString& BlueprintName)
+	auto FBlueprintCreationService::CompileBlueprint(const FString& BlueprintName) -> FVoidResult
 	{
 		if (BlueprintName.IsEmpty())
 		{
 			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
 		}
 
-		UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
 		if (!Blueprint)
 		{
-			return FVoidResult::Failure(
-				FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName)
-			);
+			return FVoidResult::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
 		}
 
-		// Attempt compilation
 		FKismetEditorUtilities::CompileBlueprint(Blueprint);
 
-		// Check compilation result
-		if (Blueprint->Status == BS_Error)
-		{
-			return FVoidResult::Failure(
-				FString::Printf(TEXT("Blueprint compilation failed for: %s"), *BlueprintName)
-			);
-		}
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("BlueprintCreationService: Compiled blueprint '%s'"),
+			*BlueprintName
+		);
 
 		return FVoidResult::Success();
 	}
 
-	TSharedPtr<FJsonObject> FBlueprintCreationService::CompileBlueprintAsJson(const FString& BlueprintName)
+	auto FBlueprintCreationService::ResolveParentClass(const FString& ParentClassName) -> UClass*
 	{
-		FVoidResult Result = CompileBlueprint(BlueprintName);
-
-		if (Result.IsSuccess())
-		{
-			TSharedPtr<FJsonObject> ResponseObj = MakeShared<FJsonObject>();
-			ResponseObj->SetStringField(TEXT("name"), BlueprintName);
-			ResponseObj->SetBoolField(TEXT("compiled"), true);
-			ResponseObj->SetBoolField(TEXT("success"), true);
-			return ResponseObj;
-		}
-
-		return CreateErrorResponse(Result.GetError());
-	}
-
-	UClass* FBlueprintCreationService::ResolveParentClass(const FString& ParentClassName)
-	{
-		if (ParentClassName.IsEmpty())
+		// Handle empty or default cases
+		if (ParentClassName.IsEmpty() || ParentClassName == TEXT("Actor"))
 		{
 			return AActor::StaticClass();
 		}
 
-		FString ClassName = ParentClassName;
-
-		// Attempt direct class resolution for common cases
-		if (ClassName == TEXT("Pawn"))
+		if (ParentClassName == TEXT("Pawn"))
 		{
 			return APawn::StaticClass();
 		}
 
-		if (ClassName == TEXT("Actor") || ClassName.IsEmpty())
+		FString NormalizedClassName = ParentClassName;
+
+		// Add 'A' prefix if not present (Unreal Engine convention for Actor-derived classes)
+		if (!NormalizedClassName.StartsWith(TEXT("A")))
+		{
+			NormalizedClassName = TEXT("A") + NormalizedClassName;
+		}
+
+		// Handle common cases directly
+		if (NormalizedClassName == TEXT("AActor"))
 		{
 			return AActor::StaticClass();
 		}
 
-		// Add 'A' prefix if not present
-		if (!ClassName.StartsWith(TEXT("A")))
-		{
-			ClassName = TEXT("A") + ClassName;
-		}
-
-		// Attempt to load from Engine module
-		if (ClassName == TEXT("APawn"))
+		if (NormalizedClassName == TEXT("APawn"))
 		{
 			return APawn::StaticClass();
 		}
 
-		if (ClassName == TEXT("AActor"))
-		{
-			return AActor::StaticClass();
-		}
-
-		const FString EngineClassPath = FString::Printf(TEXT("/Script/Engine.%s"), *ClassName);
+		// Try to load from Engine module
+		FString EngineClassPath = FString::Printf(TEXT("/Script/Engine.%s"), *NormalizedClassName);
 		UClass* FoundClass = LoadClass<AActor>(nullptr, *EngineClassPath);
 
 		if (FoundClass)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Resolved parent class to '%s' from Engine module"), *ClassName);
+			UE_LOG(
+				LogTemp,
+				Verbose,
+				TEXT("BlueprintCreationService: Resolved parent class '%s' from Engine module"),
+				*NormalizedClassName
+			);
 			return FoundClass;
 		}
 
-		// Attempt to load from Game module
-		const FString GameClassPath = FString::Printf(TEXT("/Script/Game.%s"), *ClassName);
+		// Try to load from Game module
+		FString GameClassPath = FString::Printf(TEXT("/Script/Game.%s"), *NormalizedClassName);
 		FoundClass = LoadClass<AActor>(nullptr, *GameClassPath);
 
 		if (FoundClass)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Resolved parent class to '%s' from Game module"), *ClassName);
+			UE_LOG(
+				LogTemp,
+				Verbose,
+				TEXT("BlueprintCreationService: Resolved parent class '%s' from Game module"),
+				*NormalizedClassName
+			);
 			return FoundClass;
 		}
 
-		// Log warning and fallback to AActor
+		// Fallback to AActor with warning
 		UE_LOG(
 			LogTemp,
 			Warning,
-			TEXT("Could not find parent class '%s' (tried: %s and %s) - defaulting to AActor"),
-			*ParentClassName,
-			*EngineClassPath,
-			*GameClassPath
+			TEXT("BlueprintCreationService: Could not resolve parent class '%s' - defaulting to AActor"),
+			*ParentClassName
 		);
 
 		return AActor::StaticClass();
 	}
-
-	TSharedPtr<FJsonObject> FBlueprintCreationService::CreateErrorResponse(const FString& Error)
-	{
-		return FUnrealMCPCommonUtils::CreateErrorResponse(Error);
-	}
-
-	TSharedPtr<FJsonObject> FBlueprintCreationService::CreateSuccessResponse(const TSharedPtr<FJsonObject>& Data)
-	{
-		if (Data)
-		{
-			return Data;
-		}
-
-		TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
-		Response->SetBoolField(TEXT("success"), true);
-		return Response;
-	}
-}
+} // namespace UnrealMCP

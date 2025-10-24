@@ -1,5 +1,5 @@
 #include "Core/MCPTypes.h"
-#include "Commands/UnrealMCPCommonUtils.h"
+#include "Commands/CommonUtils.h"
 
 namespace UnrealMCP {
 	auto FBlueprintSpawnParams::FromJson(const TSharedPtr<FJsonObject>& Json) -> TResult<FBlueprintSpawnParams> {
@@ -20,11 +20,11 @@ namespace UnrealMCP {
 
 		// Optional fields
 		if (Json->HasField(TEXT("location"))) {
-			Params.Location = FUnrealMCPCommonUtils::GetVectorFromJson(Json, TEXT("location"));
+			Params.Location = FCommonUtils::GetVectorFromJson(Json, TEXT("location"));
 		}
 
 		if (Json->HasField(TEXT("rotation"))) {
-			Params.Rotation = FUnrealMCPCommonUtils::GetRotatorFromJson(Json, TEXT("rotation"));
+			Params.Rotation = FCommonUtils::GetRotatorFromJson(Json, TEXT("rotation"));
 		}
 
 		return TResult<FBlueprintSpawnParams>::Success(MoveTemp(Params));
@@ -80,15 +80,15 @@ namespace UnrealMCP {
 		}
 
 		if (Json->HasField(TEXT("location"))) {
-			Params.Location = FUnrealMCPCommonUtils::GetVectorFromJson(Json, TEXT("location"));
+			Params.Location = FCommonUtils::GetVectorFromJson(Json, TEXT("location"));
 		}
 
 		if (Json->HasField(TEXT("rotation"))) {
-			Params.Rotation = FUnrealMCPCommonUtils::GetRotatorFromJson(Json, TEXT("rotation"));
+			Params.Rotation = FCommonUtils::GetRotatorFromJson(Json, TEXT("rotation"));
 		}
 
 		if (Json->HasField(TEXT("scale"))) {
-			Params.Scale = FUnrealMCPCommonUtils::GetVectorFromJson(Json, TEXT("scale"));
+			Params.Scale = FCommonUtils::GetVectorFromJson(Json, TEXT("scale"));
 		}
 
 		if (Json->HasField(TEXT("component_properties"))) {
@@ -207,11 +207,11 @@ namespace UnrealMCP {
 		Json->TryGetStringField(TEXT("text"), Params.Text);
 
 		if (Json->HasField(TEXT("position"))) {
-			Params.Position = FUnrealMCPCommonUtils::GetVector2DFromJson(Json, TEXT("position"));
+			Params.Position = FCommonUtils::GetVector2DFromJson(Json, TEXT("position"));
 		}
 
 		if (Json->HasField(TEXT("size"))) {
-			Params.Size = FUnrealMCPCommonUtils::GetVector2DFromJson(Json, TEXT("size"));
+			Params.Size = FCommonUtils::GetVector2DFromJson(Json, TEXT("size"));
 		}
 
 		if (Json->HasField(TEXT("font_size"))) {
@@ -241,11 +241,11 @@ namespace UnrealMCP {
 		Json->TryGetStringField(TEXT("text"), Params.Text);
 
 		if (Json->HasField(TEXT("position"))) {
-			Params.Position = FUnrealMCPCommonUtils::GetVector2DFromJson(Json, TEXT("position"));
+			Params.Position = FCommonUtils::GetVector2DFromJson(Json, TEXT("position"));
 		}
 
 		if (Json->HasField(TEXT("size"))) {
-			Params.Size = FUnrealMCPCommonUtils::GetVector2DFromJson(Json, TEXT("size"));
+			Params.Size = FCommonUtils::GetVector2DFromJson(Json, TEXT("size"));
 		}
 
 		if (Json->HasField(TEXT("font_size"))) {

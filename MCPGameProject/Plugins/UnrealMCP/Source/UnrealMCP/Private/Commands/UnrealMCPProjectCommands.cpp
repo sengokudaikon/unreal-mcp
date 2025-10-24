@@ -1,5 +1,5 @@
 #include "Commands/UnrealMCPProjectCommands.h"
-#include "Commands/UnrealMCPCommonUtils.h"
+#include "Commands/CommonUtils.h"
 #include "GameFramework/InputSettings.h"
 
 FUnrealMCPProjectCommands::FUnrealMCPProjectCommands() {
@@ -12,7 +12,7 @@ TSharedPtr<FJsonObject> FUnrealMCPProjectCommands::HandleCommand(const FString& 
 		return HandleCreateInputMapping(Params);
 	}
 
-	return FUnrealMCPCommonUtils::CreateErrorResponse(
+	return FCommonUtils::CreateErrorResponse(
 		FString::Printf(TEXT("Unknown project command: %s"), *CommandType));
 }
 
@@ -22,18 +22,18 @@ auto FUnrealMCPProjectCommands::HandleCreateInputMapping(
 	// Get required parameters
 	FString ActionName;
 	if (!Params->TryGetStringField(TEXT("action_name"), ActionName)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'action_name' parameter"));
+		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'action_name' parameter"));
 	}
 
 	FString Key;
 	if (!Params->TryGetStringField(TEXT("key"), Key)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'key' parameter"));
+		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'key' parameter"));
 	}
 
 	// Get the input settings
 	UInputSettings* InputSettings = GetMutableDefault<UInputSettings>();
 	if (!InputSettings) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get input settings"));
+		return FCommonUtils::CreateErrorResponse(TEXT("Failed to get input settings"));
 	}
 
 	// Create the input action mapping

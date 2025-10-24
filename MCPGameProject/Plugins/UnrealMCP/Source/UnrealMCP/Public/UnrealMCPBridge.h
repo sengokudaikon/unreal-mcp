@@ -30,7 +30,7 @@ class UNREALMCP_API UUnrealMCPBridge : public UEditorSubsystem
 
 public:
 	UUnrealMCPBridge();
-	virtual ~UUnrealMCPBridge();
+	virtual ~UUnrealMCPBridge() override;
 
 	// UEditorSubsystem implementation
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

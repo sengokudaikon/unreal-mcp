@@ -14,7 +14,7 @@ class FMCPServerRunnable : public FRunnable
 {
 public:
 	FMCPServerRunnable(UUnrealMCPBridge* InBridge, TSharedPtr<FSocket> InListenerSocket);
-	virtual ~FMCPServerRunnable();
+	virtual ~FMCPServerRunnable() override;
 
 	// FRunnable interface
 	virtual bool Init() override;

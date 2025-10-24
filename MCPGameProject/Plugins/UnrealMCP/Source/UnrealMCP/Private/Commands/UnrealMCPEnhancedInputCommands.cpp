@@ -1,406 +1,201 @@
 #include "Commands/UnrealMCPEnhancedInputCommands.h"
-#include "Commands/UnrealMCPCommonUtils.h"
-#include "InputAction.h"
-#include "InputMappingContext.h"
-#include "EnhancedInputSubsystems.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputLibrary.h"
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "UObject/SavePackage.h"
-#include "Misc/Paths.h"
-#include "GameFramework/PlayerController.h"
-#include "Engine/World.h"
-#include "Editor.h"
+#include "Commands/CommonUtils.h"
+#include "Services/InputService.h"
+#include "Core/MCPTypes.h"
 
 auto FUnrealMCPEnhancedInputCommands::HandleCommand(
 	const FString& CommandType,
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Enhanced Input commands
-	if (CommandType == TEXT("create_enhanced_input_action")) {
+) -> TSharedPtr<FJsonObject>
+{
+	if (CommandType == TEXT("create_enhanced_input_action"))
+	{
 		return HandleCreateEnhancedInputAction(Params);
 	}
-	if (CommandType == TEXT("create_input_mapping_context")) {
+	if (CommandType == TEXT("create_input_mapping_context"))
+	{
 		return HandleCreateInputMappingContext(Params);
 	}
-	if (CommandType == TEXT("add_enhanced_input_mapping")) {
+	if (CommandType == TEXT("add_enhanced_input_mapping"))
+	{
 		return HandleAddEnhancedInputMapping(Params);
 	}
-	if (CommandType == TEXT("remove_enhanced_input_mapping")) {
+	if (CommandType == TEXT("remove_enhanced_input_mapping"))
+	{
 		return HandleRemoveEnhancedInputMapping(Params);
 	}
-	if (CommandType == TEXT("apply_mapping_context")) {
+	if (CommandType == TEXT("apply_mapping_context"))
+	{
 		return HandleApplyMappingContext(Params);
 	}
-	if (CommandType == TEXT("remove_mapping_context")) {
+	if (CommandType == TEXT("remove_mapping_context"))
+	{
 		return HandleRemoveMappingContext(Params);
 	}
-	if (CommandType == TEXT("clear_all_mapping_contexts")) {
+	if (CommandType == TEXT("clear_all_mapping_contexts"))
+	{
 		return HandleClearAllMappingContexts(Params);
 	}
 
-	return FUnrealMCPCommonUtils::CreateErrorResponse(
-		FString::Printf(TEXT("Unknown enhanced input command: %s"), *CommandType));
+	return FCommonUtils::CreateErrorResponse(
+		FString::Printf(TEXT("Unknown enhanced input command: %s"), *CommandType)
+	);
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleCreateEnhancedInputAction(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
-	FString ActionName;
-	if (!Params->TryGetStringField(TEXT("name"), ActionName)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'name' parameter"));
+) -> TSharedPtr<FJsonObject>
+{
+	// Parse JSON to params struct
+	UnrealMCP::TResult<UnrealMCP::FInputActionParams> ParamsResult =
+		UnrealMCP::FInputActionParams::FromJson(Params);
+
+	if (ParamsResult.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	FString ValueTypeStr;
-	if (!Params->TryGetStringField(TEXT("value_type"), ValueTypeStr)) {
-		ValueTypeStr = TEXT("Boolean"); // Default to Boolean
+	// Delegate to service
+	UnrealMCP::TResult<UInputAction*> Result =
+		UnrealMCP::FInputService::CreateInputAction(ParamsResult.GetValue());
+
+	if (Result.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	FString AssetPath;
-	if (!Params->TryGetStringField(TEXT("path"), AssetPath)) {
-		AssetPath = TEXT("/Game/Input"); // Default path
-	}
-
-	// Map value type string to enum
-	EInputActionValueType ValueType = EInputActionValueType::Boolean;
-	if (ValueTypeStr == TEXT("Axis1D")) {
-		ValueType = EInputActionValueType::Axis1D;
-	}
-	else if (ValueTypeStr == TEXT("Axis2D")) {
-		ValueType = EInputActionValueType::Axis2D;
-	}
-	else if (ValueTypeStr == TEXT("Axis3D")) {
-		ValueType = EInputActionValueType::Axis3D;
-	}
-
-	// Create package path
-	FString PackagePath = AssetPath / FString::Printf(TEXT("IA_%s"), *ActionName);
-	UPackage* Package = CreatePackage(*PackagePath);
-	if (!Package) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to create package"));
-	}
-
-	// Create the Input Action asset
-	UInputAction* InputAction = NewObject<UInputAction>(Package,
-	                                                    *FString::Printf(TEXT("IA_%s"), *ActionName),
-	                                                    RF_Public | RF_Standalone);
-	if (!InputAction) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to create Input Action"));
-	}
-
-	InputAction->ValueType = ValueType;
-
-	// Mark package as dirty and save
-	Package->MarkPackageDirty();
-	FAssetRegistryModule::AssetCreated(InputAction);
-
-	// Save the asset
-	FString PackageFileName = FPackageName::LongPackageNameToFilename(PackagePath,
-	                                                                  FPackageName::GetAssetPackageExtension());
-	FSavePackageArgs SaveArgs;
-	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
-	SaveArgs.SaveFlags = SAVE_NoError;
-
-	if (!UPackage::SavePackage(Package, InputAction, *PackageFileName, SaveArgs)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to save Input Action asset"));
-	}
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("name"), ActionName);
-	ResultObj->SetStringField(TEXT("value_type"), ValueTypeStr);
-	ResultObj->SetStringField(TEXT("asset_path"), PackagePath);
-	return ResultObj;
+	// Build JSON response
+	const UnrealMCP::FInputActionParams& ParsedParams = ParamsResult.GetValue();
+	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
+	Response->SetStringField(TEXT("name"), ParsedParams.Name);
+	Response->SetStringField(TEXT("value_type"), ParsedParams.ValueType);
+	Response->SetStringField(
+		TEXT("asset_path"),
+		ParsedParams.Path / FString::Printf(TEXT("IA_%s"), *ParsedParams.Name)
+	);
+	return Response;
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleCreateInputMappingContext(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
-	FString ContextName;
-	if (!Params->TryGetStringField(TEXT("name"), ContextName)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'name' parameter"));
+) -> TSharedPtr<FJsonObject>
+{
+	// Parse JSON to params struct
+	UnrealMCP::TResult<UnrealMCP::FInputMappingContextParams> ParamsResult =
+		UnrealMCP::FInputMappingContextParams::FromJson(Params);
+
+	if (ParamsResult.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	FString AssetPath;
-	if (!Params->TryGetStringField(TEXT("path"), AssetPath)) {
-		AssetPath = TEXT("/Game/Input"); // Default path
+	// Delegate to service
+	UnrealMCP::TResult<UInputMappingContext*> Result =
+		UnrealMCP::FInputService::CreateInputMappingContext(ParamsResult.GetValue());
+
+	if (Result.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Create package path
-	FString PackagePath = AssetPath / FString::Printf(TEXT("IMC_%s"), *ContextName);
-	UPackage* Package = CreatePackage(*PackagePath);
-	if (!Package) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to create package"));
-	}
-
-	// Create the Input Mapping Context asset
-	UInputMappingContext* MappingContext = NewObject<UInputMappingContext>(
-		Package,
-		*FString::Printf(TEXT("IMC_%s"), *ContextName),
-		RF_Public | RF_Standalone);
-	if (!MappingContext) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to create Input Mapping Context"));
-	}
-
-	// Mark package as dirty and save
-	Package->MarkPackageDirty();
-	FAssetRegistryModule::AssetCreated(MappingContext);
-
-	// Save the asset
-	FString PackageFileName = FPackageName::LongPackageNameToFilename(PackagePath,
-	                                                                  FPackageName::GetAssetPackageExtension());
-	FSavePackageArgs SaveArgs;
-	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
-	SaveArgs.SaveFlags = SAVE_NoError;
-
-	if (!UPackage::SavePackage(Package, MappingContext, *PackageFileName, SaveArgs)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to save Input Mapping Context asset"));
-	}
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("name"), ContextName);
-	ResultObj->SetStringField(TEXT("asset_path"), PackagePath);
-	return ResultObj;
+	// Build JSON response
+	const UnrealMCP::FInputMappingContextParams& ParsedParams = ParamsResult.GetValue();
+	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
+	Response->SetStringField(TEXT("name"), ParsedParams.Name);
+	Response->SetStringField(
+		TEXT("asset_path"),
+		ParsedParams.Path / FString::Printf(TEXT("IMC_%s"), *ParsedParams.Name)
+	);
+	return Response;
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleAddEnhancedInputMapping(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
-	FString ContextPath;
-	if (!Params->TryGetStringField(TEXT("context_path"), ContextPath)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'context_path' parameter"));
+) -> TSharedPtr<FJsonObject>
+{
+	// Parse JSON to params struct
+	UnrealMCP::TResult<UnrealMCP::FAddMappingParams> ParamsResult =
+		UnrealMCP::FAddMappingParams::FromJson(Params);
+
+	if (ParamsResult.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	FString ActionPath;
-	if (!Params->TryGetStringField(TEXT("action_path"), ActionPath)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'action_path' parameter"));
+	// Delegate to service
+	UnrealMCP::FVoidResult Result =
+		UnrealMCP::FInputService::AddMappingToContext(ParamsResult.GetValue());
+
+	if (Result.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	FString Key;
-	if (!Params->TryGetStringField(TEXT("key"), Key)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'key' parameter"));
-	}
-
-	// Load the Input Mapping Context
-	UInputMappingContext* MappingContext = LoadObject<UInputMappingContext>(nullptr, *ContextPath);
-	if (!MappingContext) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Failed to load Input Mapping Context: %s"), *ContextPath));
-	}
-
-	// Load the Input Action
-	UInputAction* InputAction = LoadObject<UInputAction>(nullptr, *ActionPath);
-	if (!InputAction) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Failed to load Input Action: %s"), *ActionPath));
-	}
-
-	// Create the key mapping
-	FEnhancedActionKeyMapping& Mapping = MappingContext->MapKey(InputAction, FKey(*Key));
-
-	// TODO: Add support for modifiers and triggers
-	// This can be expanded later to support:
-	// - Input Modifiers (Negate, Scalar, DeadZone, etc.)
-	// - Input Triggers (Pressed, Released, Hold, Tap, etc.)
-
-	// Mark the asset as modified
-	MappingContext->MarkPackageDirty();
-
-	// Request rebuild of control mappings to apply changes
-	UEnhancedInputLibrary::RequestRebuildControlMappingsUsingContext(MappingContext);
-
-	// Save the mapping context
-	FString PackageName = MappingContext->GetOutermost()->GetName();
-	FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName,
-	                                                                  FPackageName::GetAssetPackageExtension());
-
-	FSavePackageArgs SaveArgs;
-	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
-	SaveArgs.SaveFlags = SAVE_NoError;
-
-	if (!UPackage::SavePackage(MappingContext->GetOutermost(), MappingContext, *PackageFileName, SaveArgs)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to save Input Mapping Context"));
-	}
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("context_path"), ContextPath);
-	ResultObj->SetStringField(TEXT("action_path"), ActionPath);
-	ResultObj->SetStringField(TEXT("key"), Key);
-	return ResultObj;
+	// Build JSON response
+	const UnrealMCP::FAddMappingParams& ParsedParams = ParamsResult.GetValue();
+	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
+	Response->SetStringField(TEXT("context_path"), ParsedParams.ContextPath);
+	Response->SetStringField(TEXT("action_path"), ParsedParams.ActionPath);
+	Response->SetStringField(TEXT("key"), ParsedParams.Key);
+	return Response;
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleRemoveEnhancedInputMapping(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
-	FString ContextPath;
-	if (!Params->TryGetStringField(TEXT("context_path"), ContextPath)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'context_path' parameter"));
+) -> TSharedPtr<FJsonObject>
+{
+	// Parse JSON to params struct
+	UnrealMCP::TResult<UnrealMCP::FAddMappingParams> ParamsResult =
+		UnrealMCP::FAddMappingParams::FromJson(Params);
+
+	if (ParamsResult.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	FString ActionPath;
-	if (!Params->TryGetStringField(TEXT("action_path"), ActionPath)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'action_path' parameter"));
+	// Delegate to service
+	UnrealMCP::FVoidResult Result =
+		UnrealMCP::FInputService::RemoveMappingFromContext(ParamsResult.GetValue());
+
+	if (Result.IsFailure())
+	{
+		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Load the Input Mapping Context
-	UInputMappingContext* MappingContext = LoadObject<UInputMappingContext>(nullptr, *ContextPath);
-	if (!MappingContext) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Failed to load Input Mapping Context: %s"), *ContextPath));
-	}
-
-	// Load the Input Action
-	UInputAction* InputAction = LoadObject<UInputAction>(nullptr, *ActionPath);
-	if (!InputAction) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Failed to load Input Action: %s"), *ActionPath));
-	}
-
-	// Remove all mappings for this action
-	MappingContext->UnmapKey(InputAction, FKey());
-
-	// Mark the asset as modified and save
-	MappingContext->MarkPackageDirty();
-
-	// Request rebuild of control mappings to apply changes
-	UEnhancedInputLibrary::RequestRebuildControlMappingsUsingContext(MappingContext);
-
-	FString PackageName = MappingContext->GetOutermost()->GetName();
-	FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName,
-	                                                                  FPackageName::GetAssetPackageExtension());
-
-	FSavePackageArgs SaveArgs;
-	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
-	SaveArgs.SaveFlags = SAVE_NoError;
-
-	if (!UPackage::SavePackage(MappingContext->GetOutermost(), MappingContext, *PackageFileName, SaveArgs)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to save Input Mapping Context"));
-	}
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("context_path"), ContextPath);
-	ResultObj->SetStringField(TEXT("action_path"), ActionPath);
-	return ResultObj;
+	// Build JSON response
+	const UnrealMCP::FAddMappingParams& ParsedParams = ParamsResult.GetValue();
+	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
+	Response->SetStringField(TEXT("context_path"), ParsedParams.ContextPath);
+	Response->SetStringField(TEXT("action_path"), ParsedParams.ActionPath);
+	return Response;
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleApplyMappingContext(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
-	FString ContextPath;
-	if (!Params->TryGetStringField(TEXT("context_path"), ContextPath)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'context_path' parameter"));
-	}
-
-	int32 Priority = 0;
-	if (Params->HasField(TEXT("priority"))) {
-		Priority = static_cast<int32>(Params->GetNumberField(TEXT("priority")));
-	}
-
-	// Load the Input Mapping Context
-	UInputMappingContext* MappingContext = LoadObject<UInputMappingContext>(nullptr, *ContextPath);
-	if (!MappingContext) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Failed to load Input Mapping Context: %s"), *ContextPath));
-	}
-
-	// Get the first player controller
-	UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
-	if (!World) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get world"));
-	}
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!PlayerController) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("No player controller found"));
-	}
-
-	// Get the Enhanced Input Local Player Subsystem
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-		PlayerController->GetLocalPlayer());
-	if (!Subsystem) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get Enhanced Input Subsystem"));
-	}
-
-	// Add the mapping context
-	Subsystem->AddMappingContext(MappingContext, Priority);
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("context_path"), ContextPath);
-	ResultObj->SetNumberField(TEXT("priority"), Priority);
-	return ResultObj;
+) -> TSharedPtr<FJsonObject>
+{
+	// TODO: Move to a dedicated runtime input service (this is not editor-time asset management)
+	return FCommonUtils::CreateErrorResponse(
+		TEXT("apply_mapping_context is not yet implemented - requires runtime input service")
+	);
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleRemoveMappingContext(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
-	FString ContextPath;
-	if (!Params->TryGetStringField(TEXT("context_path"), ContextPath)) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'context_path' parameter"));
-	}
-
-	// Load the Input Mapping Context
-	UInputMappingContext* MappingContext = LoadObject<UInputMappingContext>(nullptr, *ContextPath);
-	if (!MappingContext) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Failed to load Input Mapping Context: %s"), *ContextPath));
-	}
-
-	// Get the first player controller
-	UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
-	if (!World) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get world"));
-	}
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!PlayerController) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("No player controller found"));
-	}
-
-	// Get the Enhanced Input Local Player Subsystem
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-		PlayerController->GetLocalPlayer());
-	if (!Subsystem) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get Enhanced Input Subsystem"));
-	}
-
-	// Remove the mapping context
-	Subsystem->RemoveMappingContext(MappingContext);
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("context_path"), ContextPath);
-	return ResultObj;
+) -> TSharedPtr<FJsonObject>
+{
+	// TODO: Move to a dedicated runtime input service (this is not editor-time asset management)
+	return FCommonUtils::CreateErrorResponse(
+		TEXT("remove_mapping_context is not yet implemented - requires runtime input service")
+	);
 }
 
 auto FUnrealMCPEnhancedInputCommands::HandleClearAllMappingContexts(
 	const TSharedPtr<FJsonObject>& Params
-) -> TSharedPtr<FJsonObject> {
-	// Get the first player controller
-	UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
-	if (!World) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get world"));
-	}
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!PlayerController) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("No player controller found"));
-	}
-
-	// Get the Enhanced Input Local Player Subsystem
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-		PlayerController->GetLocalPlayer());
-	if (!Subsystem) {
-		return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to get Enhanced Input Subsystem"));
-	}
-
-	// Clear all mapping contexts
-	Subsystem->ClearAllMappings();
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetBoolField(TEXT("success"), true);
-	return ResultObj;
+) -> TSharedPtr<FJsonObject>
+{
+	// TODO: Move to a dedicated runtime input service (this is not editor-time asset management)
+	return FCommonUtils::CreateErrorResponse(
+		TEXT("clear_all_mapping_contexts is not yet implemented - requires runtime input service")
+	);
 }

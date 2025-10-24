@@ -20,7 +20,7 @@ class UFunction;
 /**
  * Common utilities for UnrealMCP commands
  */
-class UNREALMCP_API FUnrealMCPCommonUtils
+class UNREALMCP_API FCommonUtils
 {
 public:
     // JSON utilities

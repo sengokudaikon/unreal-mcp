@@ -7,7 +7,7 @@
 auto FFindActorsByName::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse required parameters
+
 	FString Pattern;
 	if (!Params->TryGetStringField(TEXT("pattern"), Pattern)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'pattern' parameter"));
@@ -20,7 +20,7 @@ auto FFindActorsByName::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TArray<TSharedPtr<FJsonValue>> ActorArray;
 	for (const FString& ActorName : ActorNames) {
 		TSharedPtr<FJsonObject> ActorObj = MakeShared<FJsonObject>();

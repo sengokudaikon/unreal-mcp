@@ -5,7 +5,7 @@
 auto FFindBlueprintNodes::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse parameters
+
 	FString BlueprintName;
 	if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
@@ -34,7 +34,7 @@ auto FFindBlueprintNodes::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TArray<TSharedPtr<FJsonValue>> NodeGuidArray;
 	for (const FString& Guid : NodeGuids) {
 		NodeGuidArray.Add(MakeShared<FJsonValueString>(Guid));

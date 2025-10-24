@@ -12,7 +12,6 @@ auto FSetBlueprintProperty::Handle(const TSharedPtr<FJsonObject>& Params) -> TSh
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
 	}
 
-	// Parse property parameters
 	UnrealMCP::TResult<UnrealMCP::FPropertyParams> ParamsResult =
 		UnrealMCP::FPropertyParams::FromJson(Params, TEXT("blueprint_name"));
 
@@ -30,7 +29,6 @@ auto FSetBlueprintProperty::Handle(const TSharedPtr<FJsonObject>& Params) -> TSh
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build success response
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("property"), ParamsResult.GetValue().PropertyName);
 	Response->SetBoolField(TEXT("success"), true);

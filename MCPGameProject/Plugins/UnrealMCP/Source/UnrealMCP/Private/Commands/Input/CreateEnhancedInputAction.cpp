@@ -6,7 +6,7 @@
 auto FCreateEnhancedInputAction::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FInputActionParams> ParamsResult =
 		UnrealMCP::FInputActionParams::FromJson(Params);
 
@@ -21,7 +21,7 @@ auto FCreateEnhancedInputAction::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FInputActionParams& ParsedParams = ParamsResult.GetValue();
 	const UInputAction* InputAction = Result.GetValue();
 

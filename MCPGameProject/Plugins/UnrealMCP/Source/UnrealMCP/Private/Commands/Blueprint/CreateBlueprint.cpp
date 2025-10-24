@@ -7,7 +7,7 @@
 auto FCreateBlueprint::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FBlueprintCreationParams> ParamsResult =
 		UnrealMCP::FBlueprintCreationParams::FromJson(Params);
 
@@ -22,7 +22,7 @@ auto FCreateBlueprint::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FBlueprintCreationParams& ParsedParams = ParamsResult.GetValue();
 	const UBlueprint* Blueprint = Result.GetValue();
 

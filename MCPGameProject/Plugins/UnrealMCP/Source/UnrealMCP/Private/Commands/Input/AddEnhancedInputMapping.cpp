@@ -6,7 +6,7 @@
 auto FAddEnhancedInputMapping::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FAddMappingParams> ParamsResult =
 		UnrealMCP::FAddMappingParams::FromJson(Params);
 
@@ -21,7 +21,7 @@ auto FAddEnhancedInputMapping::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FAddMappingParams& ParsedParams = ParamsResult.GetValue();
 
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();

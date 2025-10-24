@@ -81,37 +81,6 @@ namespace UnrealMCP {
 		return TResult<AActor*>::Success(SpawnedActor);
 	}
 
-	auto FActorService::SpawnBlueprintActor(
-		const FString& BlueprintPath,
-		const FString& ActorName,
-		const TOptional<FVector>& Location,
-		const TOptional<FRotator>& Rotation
-	) -> TResult<AActor*> {
-		UWorld* World = GetEditorWorld();
-		if (!World) {
-			return TResult<AActor*>::Failure(TEXT("Failed to get editor world"));
-		}
-
-		UBlueprint* Blueprint = LoadObject<UBlueprint>(nullptr, *BlueprintPath);
-		if (!Blueprint || !Blueprint->GeneratedClass) {
-			return TResult<AActor*>::Failure(FString::Printf(TEXT("Failed to load blueprint: %s"), *BlueprintPath));
-		}
-
-		FVector SpawnLocation = Location.Get(FVector::ZeroVector);
-		FRotator SpawnRotation = Rotation.Get(FRotator::ZeroRotator);
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Name = FName(*ActorName);
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		AActor* SpawnedActor = World->SpawnActor<AActor>(Blueprint->GeneratedClass, SpawnLocation, SpawnRotation, SpawnParams);
-		if (!SpawnedActor) {
-			return TResult<AActor*>::Failure(TEXT("Failed to spawn blueprint actor"));
-		}
-
-		return TResult<AActor*>::Success(SpawnedActor);
-	}
-
 	auto FActorService::DeleteActor(const FString& ActorName) -> FVoidResult {
 		AActor* Actor = FindActorByName(ActorName);
 		if (!Actor) {
@@ -247,16 +216,16 @@ namespace UnrealMCP {
 		if (ClassName == TEXT("StaticMeshActor")) {
 			return AStaticMeshActor::StaticClass();
 		}
-		else if (ClassName == TEXT("DirectionalLight")) {
+		if (ClassName == TEXT("DirectionalLight")) {
 			return ADirectionalLight::StaticClass();
 		}
-		else if (ClassName == TEXT("PointLight")) {
+		if (ClassName == TEXT("PointLight")) {
 			return APointLight::StaticClass();
 		}
-		else if (ClassName == TEXT("SpotLight")) {
+		if (ClassName == TEXT("SpotLight")) {
 			return ASpotLight::StaticClass();
 		}
-		else if (ClassName == TEXT("CameraActor")) {
+		if (ClassName == TEXT("CameraActor")) {
 			return ACameraActor::StaticClass();
 		}
 

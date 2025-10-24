@@ -6,7 +6,7 @@
 auto FCreateInputMappingContext::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FInputMappingContextParams> ParamsResult =
 		UnrealMCP::FInputMappingContextParams::FromJson(Params);
 
@@ -21,7 +21,7 @@ auto FCreateInputMappingContext::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FInputMappingContextParams& ParsedParams = ParamsResult.GetValue();
 
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();

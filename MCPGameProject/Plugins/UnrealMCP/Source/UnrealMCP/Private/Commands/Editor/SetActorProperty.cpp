@@ -7,7 +7,7 @@
 auto FSetActorProperty::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse required parameters
+
 	FString ActorName;
 	if (!Params->TryGetStringField(TEXT("name"), ActorName)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'name' parameter"));
@@ -34,7 +34,7 @@ auto FSetActorProperty::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("actor"), ActorName);
 	Response->SetStringField(TEXT("property"), PropertyName);

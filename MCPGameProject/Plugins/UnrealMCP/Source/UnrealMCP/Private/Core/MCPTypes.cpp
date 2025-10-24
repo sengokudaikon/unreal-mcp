@@ -9,7 +9,6 @@ namespace UnrealMCP {
 
 		FBlueprintSpawnParams Params;
 
-		// Required fields
 		if (!Json->TryGetStringField(TEXT("blueprint_name"), Params.BlueprintName)) {
 			return TResult<FBlueprintSpawnParams>::Failure(TEXT("Missing 'blueprint_name' parameter"));
 		}
@@ -18,7 +17,6 @@ namespace UnrealMCP {
 			return TResult<FBlueprintSpawnParams>::Failure(TEXT("Missing 'actor_name' parameter"));
 		}
 
-		// Optional fields
 		if (Json->HasField(TEXT("location"))) {
 			Params.Location = FCommonUtils::GetVectorFromJson(Json, TEXT("location"));
 		}
@@ -37,12 +35,11 @@ namespace UnrealMCP {
 
 		FBlueprintCreationParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("name"), Params.Name)) {
 			return TResult<FBlueprintCreationParams>::Failure(TEXT("Missing 'name' parameter"));
 		}
 
-		// Optional fields
 		Json->TryGetStringField(TEXT("parent_class"), Params.ParentClass);
 
 		FString PackagePath;
@@ -60,7 +57,7 @@ namespace UnrealMCP {
 
 		FComponentParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("blueprint_name"), Params.BlueprintName)) {
 			return TResult<FComponentParams>::Failure(TEXT("Missing 'blueprint_name' parameter"));
 		}
@@ -73,7 +70,6 @@ namespace UnrealMCP {
 			return TResult<FComponentParams>::Failure(TEXT("Missing 'component_name' parameter"));
 		}
 
-		// Optional fields
 		FString MeshType;
 		if (Json->TryGetStringField(TEXT("static_mesh"), MeshType)) {
 			Params.MeshType = MeshType;
@@ -106,7 +102,7 @@ namespace UnrealMCP {
 
 		FPropertyParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(*TargetFieldName, Params.TargetName)) {
 			return TResult<FPropertyParams>::Failure(FString::Printf(TEXT("Missing '%s' parameter"), *TargetFieldName));
 		}
@@ -131,7 +127,7 @@ namespace UnrealMCP {
 
 		FPhysicsParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("blueprint_name"), Params.BlueprintName)) {
 			return TResult<FPhysicsParams>::Failure(TEXT("Missing 'blueprint_name' parameter"));
 		}
@@ -140,7 +136,7 @@ namespace UnrealMCP {
 			return TResult<FPhysicsParams>::Failure(TEXT("Missing 'component_name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		if (Json->HasField(TEXT("simulate_physics"))) {
 			Params.bSimulatePhysics = Json->GetBoolField(TEXT("simulate_physics"));
 		}
@@ -171,12 +167,12 @@ namespace UnrealMCP {
 
 		FWidgetCreationParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("name"), Params.Name)) {
 			return TResult<FWidgetCreationParams>::Failure(TEXT("Missing 'name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		Json->TryGetStringField(TEXT("parent_class"), Params.ParentClass);
 
 		FString PackagePath;
@@ -194,7 +190,7 @@ namespace UnrealMCP {
 
 		FTextBlockParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("widget_name"), Params.WidgetName)) {
 			return TResult<FTextBlockParams>::Failure(TEXT("Missing 'widget_name' parameter"));
 		}
@@ -203,7 +199,7 @@ namespace UnrealMCP {
 			return TResult<FTextBlockParams>::Failure(TEXT("Missing 'text_block_name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		Json->TryGetStringField(TEXT("text"), Params.Text);
 
 		if (Json->HasField(TEXT("position"))) {
@@ -228,7 +224,7 @@ namespace UnrealMCP {
 
 		FButtonParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("widget_name"), Params.WidgetName)) {
 			return TResult<FButtonParams>::Failure(TEXT("Missing 'widget_name' parameter"));
 		}
@@ -237,7 +233,7 @@ namespace UnrealMCP {
 			return TResult<FButtonParams>::Failure(TEXT("Missing 'button_name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		Json->TryGetStringField(TEXT("text"), Params.Text);
 
 		if (Json->HasField(TEXT("position"))) {
@@ -262,7 +258,7 @@ namespace UnrealMCP {
 
 		FWidgetEventBindingParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("widget_name"), Params.WidgetName)) {
 			return TResult<FWidgetEventBindingParams>::Failure(TEXT("Missing 'widget_name' parameter"));
 		}
@@ -275,7 +271,7 @@ namespace UnrealMCP {
 			return TResult<FWidgetEventBindingParams>::Failure(TEXT("Missing 'event_name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		if (Json->TryGetStringField(TEXT("function_name"), Params.FunctionName)) {
 			// Use provided function name
 		} else {
@@ -293,7 +289,7 @@ namespace UnrealMCP {
 
 		FTextBlockBindingParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("widget_name"), Params.WidgetName)) {
 			return TResult<FTextBlockBindingParams>::Failure(TEXT("Missing 'widget_name' parameter"));
 		}
@@ -306,7 +302,7 @@ namespace UnrealMCP {
 			return TResult<FTextBlockBindingParams>::Failure(TEXT("Missing 'binding_property' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		Json->TryGetStringField(TEXT("binding_type"), Params.BindingType);
 
 		return TResult<FTextBlockBindingParams>::Success(MoveTemp(Params));
@@ -319,12 +315,12 @@ namespace UnrealMCP {
 
 		FAddWidgetToViewportParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("widget_name"), Params.WidgetName)) {
 			return TResult<FAddWidgetToViewportParams>::Failure(TEXT("Missing 'widget_name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		if (Json->HasField(TEXT("z_order"))) {
 			Params.ZOrder = static_cast<int32>(Json->GetNumberField(TEXT("z_order")));
 		}
@@ -339,12 +335,12 @@ namespace UnrealMCP {
 
 		FInputActionParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("name"), Params.Name)) {
 			return TResult<FInputActionParams>::Failure(TEXT("Missing 'name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		Json->TryGetStringField(TEXT("value_type"), Params.ValueType);
 
 		FString Path;
@@ -362,12 +358,12 @@ namespace UnrealMCP {
 
 		FInputMappingContextParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("name"), Params.Name)) {
 			return TResult<FInputMappingContextParams>::Failure(TEXT("Missing 'name' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		FString Path;
 		if (Json->TryGetStringField(TEXT("path"), Path)) {
 			Params.Path = Path;
@@ -383,7 +379,7 @@ namespace UnrealMCP {
 
 		FAddMappingParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("context_path"), Params.ContextPath)) {
 			return TResult<FAddMappingParams>::Failure(TEXT("Missing 'context_path' parameter"));
 		}
@@ -406,7 +402,7 @@ namespace UnrealMCP {
 
 		FStaticMeshParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("blueprint_name"), Params.BlueprintName)) {
 			return TResult<FStaticMeshParams>::Failure(TEXT("Missing 'blueprint_name' parameter"));
 		}
@@ -415,7 +411,6 @@ namespace UnrealMCP {
 			return TResult<FStaticMeshParams>::Failure(TEXT("Missing 'component_name' parameter"));
 		}
 
-		// Optional fields
 		FString StaticMesh;
 		if (Json->TryGetStringField(TEXT("static_mesh"), StaticMesh)) {
 			Params.StaticMesh = StaticMesh;
@@ -436,12 +431,12 @@ namespace UnrealMCP {
 
 		FApplyMappingContextParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("context_path"), Params.ContextPath)) {
 			return TResult<FApplyMappingContextParams>::Failure(TEXT("Missing 'context_path' parameter"));
 		}
 
-		// Optional fields with defaults
+
 		if (Json->HasField(TEXT("priority"))) {
 			Params.Priority = static_cast<int32>(Json->GetNumberField(TEXT("priority")));
 		}
@@ -456,7 +451,7 @@ namespace UnrealMCP {
 
 		FRemoveMappingContextParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("context_path"), Params.ContextPath)) {
 			return TResult<FRemoveMappingContextParams>::Failure(TEXT("Missing 'context_path' parameter"));
 		}
@@ -471,7 +466,7 @@ namespace UnrealMCP {
 
 		FLegacyInputMappingParams Params;
 
-		// Required fields
+
 		if (!Json->TryGetStringField(TEXT("action_name"), Params.ActionName)) {
 			return TResult<FLegacyInputMappingParams>::Failure(TEXT("Missing 'action_name' parameter"));
 		}

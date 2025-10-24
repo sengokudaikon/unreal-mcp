@@ -6,7 +6,7 @@
 auto FAddBlueprintSelfReference::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse parameters
+
 	FString BlueprintName;
 	if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
@@ -26,7 +26,7 @@ auto FAddBlueprintSelfReference::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("node_id"), Result.GetValue()->NodeGuid.ToString());
 	return Response;

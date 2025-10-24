@@ -14,7 +14,7 @@ auto FGetActorsInLevel::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TArray<TSharedPtr<FJsonValue>> ActorArray;
 	for (const FString& ActorName : ActorNames) {
 		TSharedPtr<FJsonObject> ActorObj = MakeShared<FJsonObject>();

@@ -6,7 +6,7 @@
 auto FApplyMappingContext::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FApplyMappingContextParams> ParamsResult =
 		UnrealMCP::FApplyMappingContextParams::FromJson(Params);
 
@@ -21,7 +21,7 @@ auto FApplyMappingContext::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FApplyMappingContextParams& ParsedParams = ParamsResult.GetValue();
 
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();

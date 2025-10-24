@@ -23,22 +23,16 @@ namespace UnrealMCP
 	class UNREALMCP_API FWidgetService
 	{
 	public:
-		// Widget creation
 		static TResult<UWidgetBlueprint*> CreateWidget(const FWidgetCreationParams& Params);
 
-		// Text block operations
 		static TResult<UTextBlock*> AddTextBlock(const FTextBlockParams& Params);
 
-		// Button operations
 		static TResult<UButton*> AddButton(const FButtonParams& Params);
 
-		// Event binding
 		static FVoidResult BindWidgetEvent(const FWidgetEventBindingParams& Params);
 
-		// Text block binding
 		static FVoidResult SetTextBlockBinding(const FTextBlockBindingParams& Params);
 
-		// Viewport integration (returns widget class info, actual viewport addition is done in blueprints)
 		static TResult<UClass*> GetWidgetClass(const FAddWidgetToViewportParams& Params);
 
 	private:

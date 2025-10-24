@@ -6,7 +6,7 @@
 auto FTakeScreenshot::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse parameters
+
 	FString FilePath;
 	if (!Params->TryGetStringField(TEXT("filepath"), FilePath)) {
 		// Use default path if not provided
@@ -19,7 +19,7 @@ auto FTakeScreenshot::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("filepath"), Result.GetValue());
 	return Response;

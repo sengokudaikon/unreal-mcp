@@ -56,7 +56,7 @@
 #include "Commands/UnrealMCPBlueprintNodeCommands.h"
 #include "Commands/CommonUtils.h"
 #include "Commands/UnrealMCPInputCommands.h"
-#include "Commands/UnrealMCPUMGCommands.h"
+#include "Commands/UnrealMCPWidgetCommands.h"
 
 // Default settings
 #define MCP_SERVER_HOST "127.0.0.1"
@@ -68,7 +68,7 @@ UUnrealMCPBridge::UUnrealMCPBridge()
     BlueprintCommands = MakeShared<FUnrealMCPBlueprintCommands>();
     BlueprintNodeCommands = MakeShared<FUnrealMCPBlueprintNodeCommands>();
     InputCommands = MakeShared<FUnrealMCPInputCommands>();
-    UMGCommands = MakeShared<FUnrealMCPUMGCommands>();
+    UMGCommands = MakeShared<FUnrealMCPWidgetCommands>();
 }
 
 UUnrealMCPBridge::~UUnrealMCPBridge()

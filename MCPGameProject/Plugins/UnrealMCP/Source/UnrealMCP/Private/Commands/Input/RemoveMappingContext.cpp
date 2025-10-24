@@ -6,7 +6,7 @@
 auto FRemoveMappingContext::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FRemoveMappingContextParams> ParamsResult =
 		UnrealMCP::FRemoveMappingContextParams::FromJson(Params);
 
@@ -21,7 +21,7 @@ auto FRemoveMappingContext::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FRemoveMappingContextParams& ParsedParams = ParamsResult.GetValue();
 
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();

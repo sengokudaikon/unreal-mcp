@@ -44,19 +44,16 @@ public:
 
 	static auto GetRotatorFromJson(const TSharedPtr<FJsonObject>& JsonObject, const FString& FieldName) -> FRotator;
 
-	// Actor utilities
 	static auto ActorToJson(AActor* Actor) -> TSharedPtr<FJsonValue>;
 
 	static auto ActorToJsonObject(AActor* Actor, bool bDetailed = false) -> TSharedPtr<FJsonObject>;
 
-	// Blueprint utilities
 	static auto FindBlueprint(const FString& BlueprintName) -> UBlueprint*;
 
 	static auto FindBlueprintByName(const FString& BlueprintName) -> UBlueprint*;
 
 	static auto FindOrCreateEventGraph(UBlueprint* Blueprint) -> UEdGraph*;
 
-	// Blueprint node utilities
 	static auto CreateEventNode(UEdGraph* Graph, const FString& EventName, const FVector2D& Position) -> UK2Node_Event*;
 
 	static auto CreateFunctionCallNode(

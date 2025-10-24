@@ -20,7 +20,6 @@ namespace UnrealMCP
 
 		const FString FullAssetPath = Params.PackagePath + Params.Name;
 
-		// Check if asset already exists
 		if (UEditorAssetLibrary::DoesAssetExist(FullAssetPath))
 		{
 			return TResult<UBlueprint*>::Failure(
@@ -28,7 +27,6 @@ namespace UnrealMCP
 			);
 		}
 
-		// Resolve parent class
 		UClass* ParentClass = ResolveParentClass(Params.ParentClass);
 		if (!ParentClass)
 		{
@@ -37,7 +35,6 @@ namespace UnrealMCP
 			);
 		}
 
-		// Create blueprint factory
 		UBlueprintFactory* Factory = NewObject<UBlueprintFactory>();
 		if (!Factory)
 		{
@@ -46,7 +43,6 @@ namespace UnrealMCP
 
 		Factory->ParentClass = ParentClass;
 
-		// Create package
 		UPackage* Package = CreatePackage(*FullAssetPath);
 		if (!Package)
 		{
@@ -55,7 +51,6 @@ namespace UnrealMCP
 			);
 		}
 
-		// Create blueprint using factory
 		UBlueprint* NewBlueprint = Cast<UBlueprint>(
 			Factory->FactoryCreateNew(
 				UBlueprint::StaticClass(),
@@ -72,7 +67,6 @@ namespace UnrealMCP
 			return TResult<UBlueprint*>::Failure(TEXT("Failed to create blueprint asset"));
 		}
 
-		// Register with asset registry and mark as dirty
 		FAssetRegistryModule::AssetCreated(NewBlueprint);
 		Package->MarkPackageDirty();
 
@@ -115,7 +109,6 @@ namespace UnrealMCP
 
 	auto FBlueprintCreationService::ResolveParentClass(const FString& ParentClassName) -> UClass*
 	{
-		// Handle empty or default cases
 		if (ParentClassName.IsEmpty() || ParentClassName == TEXT("Actor"))
 		{
 			return AActor::StaticClass();

@@ -48,22 +48,6 @@ namespace UnrealMCP {
 		) -> TResult<AActor*>;
 
 		/**
-		 * Spawn a blueprint actor in the level
-		 *
-		 * @param BlueprintPath Full path to the blueprint asset
-		 * @param ActorName Name for the new actor
-		 * @param Location Optional spawn location
-		 * @param Rotation Optional spawn rotation
-		 * @return Success with the spawned actor, Failure with error message
-		 */
-		static auto SpawnBlueprintActor(
-			const FString& BlueprintPath,
-			const FString& ActorName,
-			const TOptional<FVector>& Location,
-			const TOptional<FRotator>& Rotation
-		) -> TResult<AActor*>;
-
-		/**
 		 * Delete an actor from the level
 		 *
 		 * @param ActorName Name of the actor to delete

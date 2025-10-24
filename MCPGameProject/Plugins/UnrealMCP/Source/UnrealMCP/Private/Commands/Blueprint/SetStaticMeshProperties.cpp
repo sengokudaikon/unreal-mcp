@@ -6,7 +6,7 @@
 #include "Services/BlueprintService.h"
 
 auto FSetStaticMeshProperties::Handle(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject> {
-	// Parse and validate parameters
+
 	UnrealMCP::TResult<UnrealMCP::FStaticMeshParams> ParamsResult =
 		UnrealMCP::FStaticMeshParams::FromJson(Params);
 
@@ -28,7 +28,6 @@ auto FSetStaticMeshProperties::Handle(const TSharedPtr<FJsonObject>& Params) -> 
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build success response
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("component"), MeshParams.ComponentName);
 	Response->SetBoolField(TEXT("success"), true);

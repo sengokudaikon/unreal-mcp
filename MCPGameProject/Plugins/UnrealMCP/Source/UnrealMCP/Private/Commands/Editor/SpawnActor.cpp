@@ -7,7 +7,7 @@
 auto FSpawnActor::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse required parameters
+
 	FString ActorClass;
 	if (!Params->TryGetStringField(TEXT("actor_class"), ActorClass)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'actor_class' parameter"));
@@ -18,7 +18,6 @@ auto FSpawnActor::Handle(
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'actor_name' parameter"));
 	}
 
-	// Parse optional parameters
 	TOptional<FVector> Location;
 	if (Params->HasField(TEXT("location"))) {
 		Location = FCommonUtils::GetVectorFromJson(Params, TEXT("location"));
@@ -40,7 +39,7 @@ auto FSpawnActor::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	AActor* SpawnedActor = Result.GetValue();
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("actor_name"), SpawnedActor->GetName());

@@ -7,13 +7,12 @@
 auto FSetActorTransform::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse required parameters
+
 	FString ActorName;
 	if (!Params->TryGetStringField(TEXT("name"), ActorName)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'name' parameter"));
 	}
 
-	// Parse optional transform parameters
 	TOptional<FVector> Location;
 	if (Params->HasField(TEXT("location"))) {
 		Location = FCommonUtils::GetVectorFromJson(Params, TEXT("location"));
@@ -40,7 +39,7 @@ auto FSetActorTransform::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("actor"), ActorName);
 	Response->SetBoolField(TEXT("success"), true);

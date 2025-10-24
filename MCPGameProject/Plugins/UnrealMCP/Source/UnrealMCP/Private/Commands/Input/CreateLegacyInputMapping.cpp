@@ -6,7 +6,7 @@
 auto FCreateLegacyInputMapping::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Parse JSON to params struct
+
 	UnrealMCP::TResult<UnrealMCP::FLegacyInputMappingParams> ParamsResult =
 		UnrealMCP::FLegacyInputMappingParams::FromJson(Params);
 
@@ -21,7 +21,7 @@ auto FCreateLegacyInputMapping::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	const UnrealMCP::FLegacyInputMappingParams& ParsedParams = ParamsResult.GetValue();
 
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();

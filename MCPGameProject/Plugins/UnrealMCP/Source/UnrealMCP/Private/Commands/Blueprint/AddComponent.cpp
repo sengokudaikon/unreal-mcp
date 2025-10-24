@@ -6,7 +6,7 @@
 #include "Services/BlueprintService.h"
 
 auto FAddComponent::Handle(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject> {
-	// Parse and validate parameters
+
 	UnrealMCP::TResult<UnrealMCP::FComponentParams> ParamsResult =
 		UnrealMCP::FComponentParams::FromJson(Params);
 
@@ -21,7 +21,6 @@ auto FAddComponent::Handle(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build success response
 	const UnrealMCP::FComponentParams& ComponentParams = ParamsResult.GetValue();
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("blueprint_name"), ComponentParams.BlueprintName);

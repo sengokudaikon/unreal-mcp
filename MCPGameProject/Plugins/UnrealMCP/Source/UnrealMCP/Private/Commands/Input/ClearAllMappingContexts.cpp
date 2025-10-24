@@ -15,7 +15,7 @@ auto FClearAllMappingContexts::Handle(
 		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Build JSON response
+
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetBoolField(TEXT("success"), true);
 	return Response;

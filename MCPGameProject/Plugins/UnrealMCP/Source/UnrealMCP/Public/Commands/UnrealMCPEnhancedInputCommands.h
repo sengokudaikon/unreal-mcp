@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "JsonObject.h"
+#include "Json.h"
 
 class FUnrealMCPEnhancedInputCommands {
 public:

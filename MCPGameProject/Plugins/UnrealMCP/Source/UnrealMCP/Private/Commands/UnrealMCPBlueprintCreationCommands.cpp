@@ -9,6 +9,8 @@
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "Engine/SimpleConstructionScript.h"
+#include "EditorAssetLibrary.h"
 #include "Editor.h"
 
 auto FUnrealMCPBlueprintCreationCommands::HandleCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>
@@ -156,10 +158,8 @@ auto FUnrealMCPBlueprintCreationCommands::HandleSpawnBlueprintActor(const TShare
 	{
 		NewActor->SetActorLabel(*ActorName);
 
-		if (!NewActor->IsActorInitialized())
-		{
-			NewActor->InitializeActor();
-		}
+		// The actor should be properly initialized after spawning
+		// No additional initialization needed for blueprint actors
 
 		return FUnrealMCPCommonUtils::ActorToJsonObject(NewActor, true);
 	}
@@ -264,11 +264,20 @@ AActor* FUnrealMCPBlueprintCreationCommands::SpawnBlueprintActorSafely(UBlueprin
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	FString FinalActorName = ActorName;
-	if (!World->IsActorNameAvailable(FName(*FinalActorName)))
+
+	// Get all actors to check if name is already in use
+	TArray<AActor*> AllActors;
+	UGameplayStatics::GetAllActorsOfClass(World, AActor::StaticClass(), AllActors);
+
+	for (const AActor* ExistingActor : AllActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnBlueprintActorSafely: Actor name '%s' already exists, appending timestamp"), *FinalActorName);
-		const FDateTime Now = FDateTime::Now();
-		FinalActorName = FString::Printf(TEXT("%s_%d"), *FinalActorName, Now.GetTicks());
+		if (ExistingActor && ExistingActor->GetActorLabel().Equals(FinalActorName))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SpawnBlueprintActorSafely: Actor name '%s' already exists, appending timestamp"), *FinalActorName);
+			const FDateTime Now = FDateTime::Now();
+			FinalActorName = FString::Printf(TEXT("%s_%d"), *FinalActorName, Now.GetTicks());
+			break;
+		}
 	}
 	SpawnParams.Name = FName(*FinalActorName);
 

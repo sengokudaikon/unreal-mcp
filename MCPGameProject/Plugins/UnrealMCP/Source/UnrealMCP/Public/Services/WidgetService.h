@@ -37,6 +37,14 @@ namespace UnrealMCP
 
 	private:
 		/**
+		 * Ensures an asset name is unique by appending a number if necessary
+		 * @param BaseName The desired base name for the asset
+		 * @param PackagePath The package path where the asset will be created
+		 * @return A unique asset name that doesn't conflict with existing assets
+		 */
+		static FString EnsureUniqueAssetName(const FString& BaseName, const FString& PackagePath);
+
+		/**
 		 * Resolves a widget name to a full asset path
 		 * Supports both full paths (e.g., "/Game/UI/MyWidget") and short names (e.g., "MyWidget")
 		 * Short names are assumed to be in /Game/UI directory

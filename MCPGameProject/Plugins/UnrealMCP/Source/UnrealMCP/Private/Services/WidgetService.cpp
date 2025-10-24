@@ -19,6 +19,14 @@
 
 namespace UnrealMCP {
 	auto FWidgetService::CreateWidget(const FWidgetCreationParams& Params) -> TResult<UWidgetBlueprint*> {
+		// Validate input parameters
+		if (Params.Name.IsEmpty()) {
+			return TResult<UWidgetBlueprint*>::Failure(TEXT("Widget name cannot be empty"));
+		}
+		if (Params.PackagePath.IsEmpty()) {
+			return TResult<UWidgetBlueprint*>::Failure(TEXT("Package path cannot be empty"));
+		}
+
 		FString FullPath = Params.PackagePath / Params.Name;
 
 		// Check if asset already exists
@@ -40,7 +48,7 @@ namespace UnrealMCP {
 			Package,
 			FName(*Params.Name),
 			BPTYPE_Normal,
-			UBlueprint::StaticClass(),
+			UWidgetBlueprint::StaticClass(),
 			UBlueprintGeneratedClass::StaticClass(),
 			FName("CreateWidget")
 		);
@@ -68,6 +76,14 @@ namespace UnrealMCP {
 	}
 
 	auto FWidgetService::AddTextBlock(const FTextBlockParams& Params) -> TResult<UTextBlock*> {
+		// Validate input parameters
+		if (Params.WidgetName.IsEmpty()) {
+			return TResult<UTextBlock*>::Failure(TEXT("Widget name cannot be empty"));
+		}
+		if (Params.TextBlockName.IsEmpty()) {
+			return TResult<UTextBlock*>::Failure(TEXT("Text block name cannot be empty"));
+		}
+
 		FString FullPath = ResolveWidgetPath(Params.WidgetName);
 
 		UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(UEditorAssetLibrary::LoadAsset(FullPath));
@@ -92,8 +108,23 @@ namespace UnrealMCP {
 			return TResult<UTextBlock*>::Failure(TEXT("Failed to create Text Block widget"));
 		}
 
+		// Register the widget with the blueprint's GUID system
+		FGuid NewGuid = FGuid::NewGuid();
+		WidgetBlueprint->WidgetVariableNameToGuidMap.Add(TextBlock->GetFName(), NewGuid);
+
 		// Set initial text
 		TextBlock->SetText(FText::FromString(Params.Text));
+
+		// Set font size
+		FSlateFontInfo FontInfo = TextBlock->GetFont();
+		FontInfo.Size = Params.FontSize;
+		TextBlock->SetFont(FontInfo);
+
+		// Set color if specified
+		if (Params.Color.IsSet())
+		{
+			TextBlock->SetColorAndOpacity(FSlateColor(Params.Color.GetValue()));
+		}
 
 		// Add to canvas panel and apply transform
 		UCanvasPanel* RootCanvas = Cast<UCanvasPanel>(WidgetBlueprint->WidgetTree->RootWidget);
@@ -108,6 +139,14 @@ namespace UnrealMCP {
 	}
 
 	auto FWidgetService::AddButton(const FButtonParams& Params) -> TResult<UButton*> {
+		// Validate input parameters
+		if (Params.WidgetName.IsEmpty()) {
+			return TResult<UButton*>::Failure(TEXT("Widget name cannot be empty"));
+		}
+		if (Params.ButtonName.IsEmpty()) {
+			return TResult<UButton*>::Failure(TEXT("Button name cannot be empty"));
+		}
+
 		FString FullPath = ResolveWidgetPath(Params.WidgetName);
 
 		UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(UEditorAssetLibrary::LoadAsset(FullPath));
@@ -132,6 +171,10 @@ namespace UnrealMCP {
 			return TResult<UButton*>::Failure(TEXT("Failed to create Button widget"));
 		}
 
+		// Register the widget with the blueprint's GUID system
+		FGuid NewGuid = FGuid::NewGuid();
+		WidgetBlueprint->WidgetVariableNameToGuidMap.Add(Button->GetFName(), NewGuid);
+
 		// Add to canvas panel and apply transform
 		UCanvasPanel* RootCanvas = Cast<UCanvasPanel>(WidgetBlueprint->WidgetTree->RootWidget);
 		UCanvasPanelSlot* ButtonSlot = RootCanvas->AddChildToCanvas(Button);
@@ -145,6 +188,17 @@ namespace UnrealMCP {
 	}
 
 	auto FWidgetService::BindWidgetEvent(const FWidgetEventBindingParams& Params) -> FVoidResult {
+		// Validate input parameters
+		if (Params.WidgetName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Widget name cannot be empty"));
+		}
+		if (Params.WidgetComponentName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Widget component name cannot be empty"));
+		}
+		if (Params.EventName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Event name cannot be empty"));
+		}
+
 		FString FullPath = ResolveWidgetPath(Params.WidgetName);
 
 		UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(UEditorAssetLibrary::LoadAsset(FullPath));
@@ -184,6 +238,17 @@ namespace UnrealMCP {
 	}
 
 	auto FWidgetService::SetTextBlockBinding(const FTextBlockBindingParams& Params) -> FVoidResult {
+		// Validate input parameters
+		if (Params.WidgetName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Widget name cannot be empty"));
+		}
+		if (Params.TextBlockName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Text block name cannot be empty"));
+		}
+		if (Params.BindingProperty.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Binding property cannot be empty"));
+		}
+
 		FString FullPath = ResolveWidgetPath(Params.WidgetName);
 
 		UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(UEditorAssetLibrary::LoadAsset(FullPath));
@@ -213,40 +278,70 @@ namespace UnrealMCP {
 			                FEdGraphTerminalType())
 		);
 
-		// Create binding function
+		// Check if binding function already exists
 		const FString FunctionName = FString::Printf(TEXT("Get%s"), *Params.BindingProperty);
-		UEdGraph* FuncGraph = FBlueprintEditorUtils::CreateNewGraph(
-			WidgetBlueprint,
-			FName(*FunctionName),
-			UEdGraph::StaticClass(),
-			UEdGraphSchema_K2::StaticClass()
-		);
+		UEdGraph* FuncGraph = nullptr;
 
-		if (FuncGraph) {
-			// Add the function to the blueprint
-			FBlueprintEditorUtils::AddFunctionGraph<UClass>(WidgetBlueprint, FuncGraph, false, nullptr);
+		// Search through existing graphs to see if one with this name already exists
+		for (UEdGraph* Graph : WidgetBlueprint->FunctionGraphs)
+		{
+			if (Graph && Graph->GetFName() == FName(*FunctionName))
+			{
+				FuncGraph = Graph;
+				break;
+			}
+		}
 
-			// Create entry node
-			UK2Node_FunctionEntry* EntryNode = NewObject<UK2Node_FunctionEntry>(FuncGraph);
-			FuncGraph->AddNode(EntryNode, false, false);
-			EntryNode->NodePosX = 0;
-			EntryNode->NodePosY = 0;
-			EntryNode->FunctionReference.SetExternalMember(FName(*FunctionName), WidgetBlueprint->GeneratedClass);
-			EntryNode->AllocateDefaultPins();
+		// Only create if it doesn't exist
+		if (!FuncGraph)
+		{
+			FuncGraph = FBlueprintEditorUtils::CreateNewGraph(
+				WidgetBlueprint,
+				FName(*FunctionName),
+				UEdGraph::StaticClass(),
+				UEdGraphSchema_K2::StaticClass()
+			);
 
-			// Create get variable node
-			UK2Node_VariableGet* GetVarNode = NewObject<UK2Node_VariableGet>(FuncGraph);
-			GetVarNode->VariableReference.SetSelfMember(FName(*Params.BindingProperty));
-			FuncGraph->AddNode(GetVarNode, false, false);
-			GetVarNode->NodePosX = 200;
-			GetVarNode->NodePosY = 0;
-			GetVarNode->AllocateDefaultPins();
+			if (FuncGraph) {
+				// Add the function to the blueprint - this may create entry nodes automatically
+				FBlueprintEditorUtils::AddFunctionGraph<UClass>(WidgetBlueprint, FuncGraph, false, nullptr);
 
-			// Connect nodes
-			UEdGraphPin* EntryThenPin = EntryNode->FindPin(UEdGraphSchema_K2::PN_Then);
-			UEdGraphPin* GetVarOutPin = GetVarNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue);
-			if (EntryThenPin && GetVarOutPin) {
-				EntryThenPin->MakeLinkTo(GetVarOutPin);
+				// Check if entry node already exists
+				UK2Node_FunctionEntry* EntryNode = nullptr;
+				for (UEdGraphNode* Node : FuncGraph->Nodes)
+				{
+					EntryNode = Cast<UK2Node_FunctionEntry>(Node);
+					if (EntryNode)
+					{
+						break;
+					}
+				}
+
+				// Create entry node only if it doesn't exist
+				if (!EntryNode)
+				{
+					EntryNode = NewObject<UK2Node_FunctionEntry>(FuncGraph);
+					FuncGraph->AddNode(EntryNode, false, false);
+					EntryNode->NodePosX = 0;
+					EntryNode->NodePosY = 0;
+					EntryNode->FunctionReference.SetExternalMember(FName(*FunctionName), WidgetBlueprint->GeneratedClass);
+					EntryNode->AllocateDefaultPins();
+				}
+
+				// Create get variable node
+				UK2Node_VariableGet* GetVarNode = NewObject<UK2Node_VariableGet>(FuncGraph);
+				GetVarNode->VariableReference.SetSelfMember(FName(*Params.BindingProperty));
+				FuncGraph->AddNode(GetVarNode, false, false);
+				GetVarNode->NodePosX = 200;
+				GetVarNode->NodePosY = 0;
+				GetVarNode->AllocateDefaultPins();
+
+				// Connect nodes
+				UEdGraphPin* EntryThenPin = EntryNode->FindPin(UEdGraphSchema_K2::PN_Then);
+				UEdGraphPin* GetVarOutPin = GetVarNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue);
+				if (EntryThenPin && GetVarOutPin) {
+					EntryThenPin->MakeLinkTo(GetVarOutPin);
+				}
 			}
 		}
 
@@ -258,6 +353,11 @@ namespace UnrealMCP {
 	}
 
 	auto FWidgetService::GetWidgetClass(const FAddWidgetToViewportParams& Params) -> TResult<UClass*> {
+		// Validate input parameters
+		if (Params.WidgetName.IsEmpty()) {
+			return TResult<UClass*>::Failure(TEXT("Widget name cannot be empty"));
+		}
+
 		FString FullPath = ResolveWidgetPath(Params.WidgetName);
 
 		UWidgetBlueprint* WidgetBlueprint = Cast<UWidgetBlueprint>(UEditorAssetLibrary::LoadAsset(FullPath));
@@ -274,6 +374,20 @@ namespace UnrealMCP {
 		}
 
 		return TResult<UClass*>::Success(WidgetClass);
+	}
+
+	auto FWidgetService::EnsureUniqueAssetName(const FString& BaseName, const FString& PackagePath) -> FString {
+		FString UniqueName = BaseName;
+		FString FullPath = PackagePath / UniqueName;
+
+		// Check if asset exists, and if so, append a number until we find a unique name
+		int32 Suffix = 1;
+		while (UEditorAssetLibrary::DoesAssetExist(FullPath)) {
+			UniqueName = FString::Printf(TEXT("%s_%d"), *BaseName, Suffix++);
+			FullPath = PackagePath / UniqueName;
+		}
+
+		return UniqueName;
 	}
 
 	auto FWidgetService::ResolveWidgetPath(const FString& WidgetName) -> FString {

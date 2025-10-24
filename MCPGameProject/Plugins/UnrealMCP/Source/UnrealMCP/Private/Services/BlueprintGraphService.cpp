@@ -26,6 +26,17 @@ namespace UnrealMCP {
 		const FString& SourcePinName,
 		const FString& TargetPinName
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (SourceNodeId.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Source node ID cannot be empty"));
+		}
+		if (TargetNodeId.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Target node ID cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -57,6 +68,14 @@ namespace UnrealMCP {
 		const FString& EventName,
 		const FVector2D& NodePosition
 	) -> TResult<UK2Node_Event*> {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return TResult<UK2Node_Event*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (EventName.IsEmpty()) {
+			return TResult<UK2Node_Event*>::Failure(TEXT("Event name cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -84,6 +103,14 @@ namespace UnrealMCP {
 		const FVector2D& NodePosition,
 		const TSharedPtr<FJsonObject>& Parameters
 	) -> TResult<UK2Node_CallFunction*> {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return TResult<UK2Node_CallFunction*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (FunctionName.IsEmpty()) {
+			return TResult<UK2Node_CallFunction*>::Failure(TEXT("Function name cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -160,6 +187,14 @@ namespace UnrealMCP {
 		const FString& ComponentName,
 		const FVector2D& NodePosition
 	) -> TResult<UK2Node_VariableGet*> {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return TResult<UK2Node_VariableGet*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (ComponentName.IsEmpty()) {
+			return TResult<UK2Node_VariableGet*>::Failure(TEXT("Component name cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -196,6 +231,11 @@ namespace UnrealMCP {
 		const FString& BlueprintName,
 		const FVector2D& NodePosition
 	) -> TResult<UK2Node_Self*> {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return TResult<UK2Node_Self*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -221,6 +261,14 @@ namespace UnrealMCP {
 		const FString& ActionName,
 		const FVector2D& NodePosition
 	) -> TResult<UK2Node_InputAction*> {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return TResult<UK2Node_InputAction*>::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (ActionName.IsEmpty()) {
+			return TResult<UK2Node_InputAction*>::Failure(TEXT("Action name cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -247,6 +295,14 @@ namespace UnrealMCP {
 		const TOptional<FString>& EventName,
 		TArray<FString>& OutNodeGuids
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (NodeType.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Node type cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {
@@ -280,6 +336,17 @@ namespace UnrealMCP {
 		const FString& VariableType,
 		bool bIsExposed
 	) -> FVoidResult {
+		// Validate input parameters
+		if (BlueprintName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Blueprint name cannot be empty"));
+		}
+		if (VariableName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Variable name cannot be empty"));
+		}
+		if (VariableType.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Variable type cannot be empty"));
+		}
+
 		FString Error;
 		UBlueprint* Blueprint = FindBlueprint(BlueprintName, Error);
 		if (!Blueprint) {

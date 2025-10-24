@@ -3,14 +3,14 @@ name = "unreal-mcp"
 version = "0.1.0"
 description = "Unreal MCP Server: A server for Unreal Engine integration via the Model Context Protocol (MCP)."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.15"
 dependencies = [
   "mcp[cli]>=1.4.1",
   "fastmcp>=0.2.0",
-  "uvicorn",
-  "fastapi",
+  "uvicorn>=0.27.0",
+  "fastapi>=0.109.0",
   "pydantic>=2.6.1",
-  "requests"
+  "requests>=2.31.0"
 ]
 
 [build-system]

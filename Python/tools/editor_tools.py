@@ -352,7 +352,10 @@ def register_editor_tools(mcp: FastMCP):
                 params[param_name] = [float(val) for val in param_value]
             
             logger.info(f"Spawning blueprint actor with params: {params}")
-            response = unreal.send_command("spawn_blueprint_actor", params)
+
+            # Blueprint spawning can take longer due to asset loading and compilation
+            # Use longer timeout for this operation
+            response = unreal.send_command("spawn_blueprint_actor", params, timeout=30)
             
             if not response:
                 logger.error("No response from Unreal Engine")

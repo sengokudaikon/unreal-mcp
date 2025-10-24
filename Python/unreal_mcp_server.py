@@ -35,7 +35,7 @@ class UnrealConnection:
         self.socket = None
         self.connected = False
     
-    def connect(self) -> bool:
+    def connect(self, timeout: int = 5) -> bool:
         """Connect to the Unreal Engine instance."""
         try:
             # Close any existing socket
@@ -45,10 +45,10 @@ class UnrealConnection:
                 except:
                     pass
                 self.socket = None
-            
+
             logger.info(f"Connecting to Unreal at {UNREAL_HOST}:{UNREAL_PORT}...")
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(5)  # 5 second timeout
+            self.socket.settimeout(timeout)  # Configurable timeout
             
             # Set socket options for better stability
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -81,7 +81,7 @@ class UnrealConnection:
     def receive_full_response(self, sock, buffer_size=4096) -> bytes:
         """Receive a complete response from Unreal, handling chunked data."""
         chunks = []
-        sock.settimeout(5)  # 5 second timeout
+        # Use the socket's existing timeout setting
         try:
             while True:
                 chunk = sock.recv(buffer_size)
@@ -123,7 +123,7 @@ class UnrealConnection:
             logger.error(f"Error during receive: {str(e)}")
             raise
     
-    def send_command(self, command: str, params: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
+    def send_command(self, command: str, params: Dict[str, Any] = None, timeout: int = 5) -> Optional[Dict[str, Any]]:
         """Send a command to Unreal Engine and get the response."""
         # Always reconnect for each command, since Unreal closes the connection after each command
         # This is different from Unity which keeps connections alive
@@ -134,8 +134,8 @@ class UnrealConnection:
                 pass
             self.socket = None
             self.connected = False
-        
-        if not self.connect():
+
+        if not self.connect(timeout=timeout):
             logger.error("Failed to connect to Unreal Engine for command")
             return None
         

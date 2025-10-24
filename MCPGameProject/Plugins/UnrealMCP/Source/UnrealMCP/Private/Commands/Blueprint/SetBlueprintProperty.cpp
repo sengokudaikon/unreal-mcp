@@ -20,8 +20,7 @@ auto FSetBlueprintProperty::Handle(const TSharedPtr<FJsonObject>& Params) -> TSh
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service layer
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FBlueprintService::SetBlueprintProperty(
 			BlueprintName,
 			ParamsResult.GetValue()

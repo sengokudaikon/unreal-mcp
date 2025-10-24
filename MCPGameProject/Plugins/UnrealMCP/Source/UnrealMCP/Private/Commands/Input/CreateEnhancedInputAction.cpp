@@ -14,8 +14,7 @@ auto FCreateEnhancedInputAction::Handle(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UInputAction*> Result =
+	const UnrealMCP::TResult<UInputAction*> Result =
 		UnrealMCP::FInputService::CreateInputAction(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

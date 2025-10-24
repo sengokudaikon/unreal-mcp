@@ -14,8 +14,7 @@ auto FApplyMappingContext::Handle(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FInputService::ApplyMappingContext(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

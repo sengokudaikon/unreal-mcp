@@ -14,8 +14,7 @@ auto FAddComponent::Handle(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service layer
-	UnrealMCP::TResult<UBlueprint*> Result =
+	const UnrealMCP::TResult<UBlueprint*> Result =
 		UnrealMCP::FBlueprintService::AddComponent(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

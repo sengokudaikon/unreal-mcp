@@ -3,13 +3,15 @@
 #include "CoreMinimal.h"
 
 /**
- * Handles operations for spawning blueprint actors dynamically.
+ * Handles spawning instances of blueprint actors in the level
+ * Takes a blueprint asset path and creates an actor instance from that blueprint
+ * For spawning native engine actors (StaticMeshActor, PointLight, etc.), use FSpawnActor in Commands/Editor
  */
-class UNREALMCP_API FSpawnActor
+class UNREALMCP_API FSpawnActorBlueprint
 {
 public:
-	FSpawnActor() = default;
-	~FSpawnActor() = default;
+	FSpawnActorBlueprint() = default;
+	~FSpawnActorBlueprint() = default;
 
 	/**
 	 * Handle blueprint spawning command

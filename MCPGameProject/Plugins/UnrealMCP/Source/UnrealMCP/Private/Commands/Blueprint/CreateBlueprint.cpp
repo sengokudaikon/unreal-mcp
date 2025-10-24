@@ -15,8 +15,7 @@ auto FCreateBlueprint::Handle(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UBlueprint*> Result =
+	const UnrealMCP::TResult<UBlueprint*> Result =
 		UnrealMCP::FBlueprintCreationService::CreateBlueprint(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

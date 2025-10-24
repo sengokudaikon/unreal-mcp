@@ -14,8 +14,7 @@ auto FCreateInputMappingContext::Handle(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UInputMappingContext*> Result =
+	const UnrealMCP::TResult<UInputMappingContext*> Result =
 		UnrealMCP::FInputService::CreateInputMappingContext(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

@@ -105,6 +105,23 @@ namespace UnrealMCP {
 		 */
 		static auto ClearAllMappingContexts() -> FVoidResult;
 
+		/**
+		 * Create a legacy input action mapping
+		 *
+		 * Adds an action mapping to the default input settings using the legacy input system.
+		 * This modifies the project's input settings and saves the configuration.
+		 *
+		 * Params.ActionName - The action name for the mapping
+		 * Params.Key - The key to bind to the action
+		 * Params.bShift - Whether Shift modifier is required
+		 * Params.bCtrl - Whether Ctrl modifier is required
+		 * Params.bAlt - Whether Alt modifier is required
+		 * Params.bCmd - Whether Cmd modifier is required
+		 *
+		 * Returns Success if the mapping was created, or Failure with an error message
+		 */
+		static auto CreateLegacyInputMapping(const FLegacyInputMappingParams& Params) -> FVoidResult;
+
 	private:
 		/**
 		 * Helper to parse value type string to EInputActionValueType enum

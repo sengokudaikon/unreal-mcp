@@ -54,10 +54,9 @@
 #include "Commands/UnrealMCPEditorCommands.h"
 #include "Commands/UnrealMCPBlueprintCommands.h"
 #include "Commands/UnrealMCPBlueprintNodeCommands.h"
-#include "Commands/UnrealMCPProjectCommands.h"
 #include "Commands/CommonUtils.h"
+#include "Commands/UnrealMCPInputCommands.h"
 #include "Commands/UnrealMCPUMGCommands.h"
-#include "Commands/UnrealMCPEnhancedInputCommands.h"
 
 // Default settings
 #define MCP_SERVER_HOST "127.0.0.1"
@@ -68,9 +67,8 @@ UUnrealMCPBridge::UUnrealMCPBridge()
     EditorCommands = MakeShared<FUnrealMCPEditorCommands>();
     BlueprintCommands = MakeShared<FUnrealMCPBlueprintCommands>();
     BlueprintNodeCommands = MakeShared<FUnrealMCPBlueprintNodeCommands>();
-    ProjectCommands = MakeShared<FUnrealMCPProjectCommands>();
+    InputCommands = MakeShared<FUnrealMCPInputCommands>();
     UMGCommands = MakeShared<FUnrealMCPUMGCommands>();
-    EnhancedInputCommands = MakeShared<FUnrealMCPEnhancedInputCommands>();
 }
 
 UUnrealMCPBridge::~UUnrealMCPBridge()
@@ -78,9 +76,8 @@ UUnrealMCPBridge::~UUnrealMCPBridge()
     EditorCommands.Reset();
     BlueprintCommands.Reset();
     BlueprintNodeCommands.Reset();
-    ProjectCommands.Reset();
+    InputCommands.Reset();
     UMGCommands.Reset();
-    EnhancedInputCommands.Reset();
 }
 
 // Initialize subsystem
@@ -266,13 +263,9 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
             {
                 ResultJson = BlueprintNodeCommands->HandleCommand(CommandType, Params);
             }
-            // Project Commands (Legacy Input)
-            else if (CommandType == TEXT("create_input_mapping"))
-            {
-                ResultJson = ProjectCommands->HandleCommand(CommandType, Params);
-            }
-            // Enhanced Input Commands
-            else if (CommandType == TEXT("create_enhanced_input_action") ||
+            // Input Commands (both legacy and enhanced)
+            else if (CommandType == TEXT("create_input_mapping") ||
+                     CommandType == TEXT("create_enhanced_input_action") ||
                      CommandType == TEXT("create_input_mapping_context") ||
                      CommandType == TEXT("add_enhanced_input_mapping") ||
                      CommandType == TEXT("remove_enhanced_input_mapping") ||
@@ -280,7 +273,7 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
                      CommandType == TEXT("remove_mapping_context") ||
                      CommandType == TEXT("clear_all_mapping_contexts"))
             {
-                ResultJson = EnhancedInputCommands->HandleCommand(CommandType, Params);
+                ResultJson = InputCommands->HandleCommand(CommandType, Params);
             }
             // UMG Commands
             else if (CommandType == TEXT("create_umg_widget_blueprint") ||

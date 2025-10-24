@@ -1,14 +1,11 @@
 #include "Commands/BlueprintNode/ConnectBlueprintNodes.h"
 #include "Commands/CommonUtils.h"
-#include "Engine/Blueprint.h"
-#include "EdGraph/EdGraph.h"
-#include "EdGraph/EdGraphNode.h"
-#include "Kismet2/BlueprintEditorUtils.h"
+#include "Services/BlueprintGraphService.h"
 
 auto FConnectBlueprintNodes::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
+	// Parse parameters
 	FString BlueprintName;
 	if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
@@ -34,45 +31,21 @@ auto FConnectBlueprintNodes::Handle(
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'target_pin' parameter"));
 	}
 
-	// Find the blueprint
-	UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
-	if (!Blueprint) {
-		return FCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::ConnectNodes(
+		BlueprintName,
+		SourceNodeId,
+		TargetNodeId,
+		SourcePinName,
+		TargetPinName
+	);
+
+	if (Result.IsFailure()) {
+		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Get the event graph
-	UEdGraph* EventGraph = FCommonUtils::FindOrCreateEventGraph(Blueprint);
-	if (!EventGraph) {
-		return FCommonUtils::CreateErrorResponse(TEXT("Failed to get event graph"));
-	}
-
-	// Find the nodes
-	UEdGraphNode* SourceNode = nullptr;
-	UEdGraphNode* TargetNode = nullptr;
-	for (UEdGraphNode* Node : EventGraph->Nodes) {
-		if (Node->NodeGuid.ToString() == SourceNodeId) {
-			SourceNode = Node;
-		}
-		else if (Node->NodeGuid.ToString() == TargetNodeId) {
-			TargetNode = Node;
-		}
-	}
-
-	if (!SourceNode || !TargetNode) {
-		return FCommonUtils::CreateErrorResponse(TEXT("Source or target node not found"));
-	}
-
-	// Connect the nodes
-	if (FCommonUtils::ConnectGraphNodes(EventGraph, SourceNode, SourcePinName, TargetNode, TargetPinName)) {
-		// Mark the blueprint as modified
-		FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
-
-		TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-		ResultObj->SetStringField(TEXT("source_node_id"), SourceNodeId);
-		ResultObj->SetStringField(TEXT("target_node_id"), TargetNodeId);
-		return ResultObj;
-	}
-
-	return FCommonUtils::CreateErrorResponse(TEXT("Failed to connect nodes"));
+	// Build JSON response
+	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
+	Response->SetStringField(TEXT("source_node_id"), SourceNodeId);
+	Response->SetStringField(TEXT("target_node_id"), TargetNodeId);
+	return Response;
 }

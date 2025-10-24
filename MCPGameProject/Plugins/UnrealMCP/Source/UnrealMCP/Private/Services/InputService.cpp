@@ -9,6 +9,7 @@
 #include "Editor.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/InputSettings.h"
 
 namespace UnrealMCP {
 
@@ -273,6 +274,38 @@ namespace UnrealMCP {
 		}
 
 		return Subsystem;
+	}
+
+	auto FInputService::CreateLegacyInputMapping(const FLegacyInputMappingParams& Params) -> FVoidResult {
+		if (Params.ActionName.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Action name cannot be empty"));
+		}
+
+		if (Params.Key.IsEmpty()) {
+			return FVoidResult::Failure(TEXT("Key cannot be empty"));
+		}
+
+		// Get the input settings
+		UInputSettings* InputSettings = GetMutableDefault<UInputSettings>();
+		if (!InputSettings) {
+			return FVoidResult::Failure(TEXT("Failed to get input settings"));
+		}
+
+		// Create the input action mapping
+		FInputActionKeyMapping ActionMapping;
+		ActionMapping.ActionName = FName(*Params.ActionName);
+		ActionMapping.Key = FKey(*Params.Key);
+		ActionMapping.bShift = Params.bShift;
+		ActionMapping.bCtrl = Params.bCtrl;
+		ActionMapping.bAlt = Params.bAlt;
+		ActionMapping.bCmd = Params.bCmd;
+
+		// Add the mapping
+		InputSettings->AddActionMapping(ActionMapping);
+
+		// Save the configuration
+		InputSettings->SaveConfig();
+		return FVoidResult::Success();
 	}
 
 } // namespace UnrealMCP

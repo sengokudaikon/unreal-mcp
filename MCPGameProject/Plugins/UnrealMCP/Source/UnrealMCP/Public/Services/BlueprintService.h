@@ -30,7 +30,7 @@ namespace UnrealMCP {
 		 * @param Params Blueprint spawn parameters (name, location, rotation)
 		 * @return The spawned actor instance or an error
 		 */
-		static TResult<AActor*> SpawnActor(const FBlueprintSpawnParams& Params);
+		static TResult<AActor*> SpawnActorBlueprint(const FBlueprintSpawnParams& Params);
 
 		// ============ Component Operations ============
 
@@ -129,7 +129,7 @@ namespace UnrealMCP {
 		 * @param ComponentName Name of the component to find
 		 * @return The node pointer or nullptr if not found
 		 */
-		static USCS_Node* FindComponentNode(UBlueprint* Blueprint, const FString& ComponentName);
+		static USCS_Node* FindComponentNode(const UBlueprint* Blueprint, const FString& ComponentName);
 
 		/**
 		 * Validate that a blueprint has a valid construction script.
@@ -137,7 +137,7 @@ namespace UnrealMCP {
 		 * @param Blueprint Blueprint to validate
 		 * @return Empty string if valid, error message if invalid
 		 */
-		static FString ValidateBlueprintForComponentOps(UBlueprint* Blueprint);
+		static FString ValidateBlueprintForComponentOps(const UBlueprint* Blueprint);
 
 		/**
 		 * Resolve a component type name to a UClass.

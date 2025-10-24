@@ -1,10 +1,10 @@
-#include "Commands/Blueprint/SpawnActor.h"
+#include "Commands/Blueprint/SpawnActorBlueprint.h"
 
 #include "Commands/CommonUtils.h"
 #include "Services/BlueprintService.h"
 #include "Core/MCPTypes.h"
 
-auto FSpawnActor::Handle(
+auto FSpawnActorBlueprint::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
 	UnrealMCP::TResult<UnrealMCP::FBlueprintSpawnParams> ParamsResult =
@@ -15,7 +15,7 @@ auto FSpawnActor::Handle(
 	}
 
 	UnrealMCP::TResult<AActor*> Result =
-		UnrealMCP::FBlueprintService::SpawnActor(ParamsResult.GetValue());
+		UnrealMCP::FBlueprintService::SpawnActorBlueprint(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {
 		return FCommonUtils::CreateErrorResponse(Result.GetError());

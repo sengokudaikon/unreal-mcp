@@ -231,6 +231,22 @@ namespace UnrealMCP
 	};
 
 	/**
+	 * Parameters for creating a legacy input action mapping
+	 */
+	struct FLegacyInputMappingParams
+	{
+		FString ActionName;
+		FString Key;
+		bool bShift = false;
+		bool bCtrl = false;
+		bool bAlt = false;
+		bool bCmd = false;
+
+		/** Parse from JSON parameters */
+		static TResult<FLegacyInputMappingParams> FromJson(const TSharedPtr<FJsonObject>& Json);
+	};
+
+	/**
 	 * Parameters for setting static mesh properties on a component
 	 */
 	struct FStaticMeshParams

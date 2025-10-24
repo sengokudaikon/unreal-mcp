@@ -463,4 +463,37 @@ namespace UnrealMCP {
 
 		return TResult<FRemoveMappingContextParams>::Success(MoveTemp(Params));
 	}
+
+	auto FLegacyInputMappingParams::FromJson(const TSharedPtr<FJsonObject>& Json) -> TResult<FLegacyInputMappingParams> {
+		if (!Json.IsValid()) {
+			return TResult<FLegacyInputMappingParams>::Failure(TEXT("Invalid JSON object"));
+		}
+
+		FLegacyInputMappingParams Params;
+
+		// Required fields
+		if (!Json->TryGetStringField(TEXT("action_name"), Params.ActionName)) {
+			return TResult<FLegacyInputMappingParams>::Failure(TEXT("Missing 'action_name' parameter"));
+		}
+
+		if (!Json->TryGetStringField(TEXT("key"), Params.Key)) {
+			return TResult<FLegacyInputMappingParams>::Failure(TEXT("Missing 'key' parameter"));
+		}
+
+		// Optional modifier fields
+		if (Json->HasField(TEXT("shift"))) {
+			Params.bShift = Json->GetBoolField(TEXT("shift"));
+		}
+		if (Json->HasField(TEXT("ctrl"))) {
+			Params.bCtrl = Json->GetBoolField(TEXT("ctrl"));
+		}
+		if (Json->HasField(TEXT("alt"))) {
+			Params.bAlt = Json->GetBoolField(TEXT("alt"));
+		}
+		if (Json->HasField(TEXT("cmd"))) {
+			Params.bCmd = Json->GetBoolField(TEXT("cmd"));
+		}
+
+		return TResult<FLegacyInputMappingParams>::Success(MoveTemp(Params));
+	}
 }

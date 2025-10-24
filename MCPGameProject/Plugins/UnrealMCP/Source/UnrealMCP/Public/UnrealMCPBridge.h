@@ -11,9 +11,8 @@
 #include "Commands/UnrealMCPEditorCommands.h"
 #include "Commands/UnrealMCPBlueprintCommands.h"
 #include "Commands/UnrealMCPBlueprintNodeCommands.h"
-#include "Commands/UnrealMCPProjectCommands.h"
+#include "Commands/UnrealMCPInputCommands.h"
 #include "Commands/UnrealMCPUMGCommands.h"
-#include "Commands/UnrealMCPEnhancedInputCommands.h"
 #include "UnrealMCPBridge.generated.h"
 
 class FMCPServerRunnable;
@@ -60,7 +59,6 @@ private:
 	TSharedPtr<FUnrealMCPEditorCommands> EditorCommands;
 	TSharedPtr<FUnrealMCPBlueprintCommands> BlueprintCommands;
 	TSharedPtr<FUnrealMCPBlueprintNodeCommands> BlueprintNodeCommands;
-	TSharedPtr<FUnrealMCPProjectCommands> ProjectCommands;
+	TSharedPtr<FUnrealMCPInputCommands> InputCommands;
 	TSharedPtr<FUnrealMCPUMGCommands> UMGCommands;
-	TSharedPtr<FUnrealMCPEnhancedInputCommands> EnhancedInputCommands;
 }; 

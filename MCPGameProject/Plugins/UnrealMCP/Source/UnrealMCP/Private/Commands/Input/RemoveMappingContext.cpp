@@ -14,8 +14,7 @@ auto FRemoveMappingContext::Handle(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FInputService::RemoveMappingContext(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

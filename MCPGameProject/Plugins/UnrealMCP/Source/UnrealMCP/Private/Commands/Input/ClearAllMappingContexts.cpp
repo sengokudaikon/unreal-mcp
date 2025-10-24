@@ -8,8 +8,7 @@ auto FClearAllMappingContexts::Handle(
 ) -> TSharedPtr<FJsonObject> {
 	// No parameter parsing needed for this command
 
-	// Delegate to service
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FInputService::ClearAllMappingContexts();
 
 	if (Result.IsFailure()) {

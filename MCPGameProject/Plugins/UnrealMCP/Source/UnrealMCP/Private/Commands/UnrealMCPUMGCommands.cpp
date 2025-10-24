@@ -56,8 +56,7 @@ auto FUnrealMCPUMGCommands::HandleCreateUMGWidgetBlueprint(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UWidgetBlueprint*> Result =
+		UnrealMCP::TResult<UWidgetBlueprint*> Result =
 		UnrealMCP::FWidgetService::CreateWidget(ParamsResult.GetValue());
 
 	if (Result.IsFailure())
@@ -86,8 +85,7 @@ auto FUnrealMCPUMGCommands::HandleAddTextBlockToWidget(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UTextBlock*> Result =
+		UnrealMCP::TResult<UTextBlock*> Result =
 		UnrealMCP::FWidgetService::AddTextBlock(ParamsResult.GetValue());
 
 	if (Result.IsFailure())
@@ -116,8 +114,7 @@ auto FUnrealMCPUMGCommands::HandleAddButtonToWidget(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UButton*> Result =
+		UnrealMCP::TResult<UButton*> Result =
 		UnrealMCP::FWidgetService::AddButton(ParamsResult.GetValue());
 
 	if (Result.IsFailure())
@@ -146,8 +143,7 @@ auto FUnrealMCPUMGCommands::HandleBindWidgetEvent(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::FVoidResult Result =
+		UnrealMCP::FVoidResult Result =
 		UnrealMCP::FWidgetService::BindWidgetEvent(ParamsResult.GetValue());
 
 	if (Result.IsFailure())
@@ -176,8 +172,7 @@ auto FUnrealMCPUMGCommands::HandleSetTextBlockBinding(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::FVoidResult Result =
+		UnrealMCP::FVoidResult Result =
 		UnrealMCP::FWidgetService::SetTextBlockBinding(ParamsResult.GetValue());
 
 	if (Result.IsFailure())
@@ -206,8 +201,7 @@ auto FUnrealMCPUMGCommands::HandleAddWidgetToViewport(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::TResult<UClass*> Result =
+		UnrealMCP::TResult<UClass*> Result =
 		UnrealMCP::FWidgetService::GetWidgetClass(ParamsResult.GetValue());
 
 	if (Result.IsFailure())

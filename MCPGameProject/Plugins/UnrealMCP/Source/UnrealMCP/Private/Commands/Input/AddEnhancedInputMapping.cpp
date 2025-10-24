@@ -14,8 +14,7 @@ auto FAddEnhancedInputMapping::Handle(
 		return FCommonUtils::CreateErrorResponse(ParamsResult.GetError());
 	}
 
-	// Delegate to service
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FInputService::AddMappingToContext(ParamsResult.GetValue());
 
 	if (Result.IsFailure()) {

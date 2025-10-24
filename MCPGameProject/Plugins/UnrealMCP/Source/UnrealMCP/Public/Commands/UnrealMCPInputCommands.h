@@ -3,18 +3,18 @@
 #include "CoreMinimal.h"
 
 /**
- * Handler class for Editor-related MCP commands
+ * Handler class for Input-related MCP commands
  *
  * This class acts as a command router, delegating to specialized
- * command handler classes for each editor operation using a registry pattern.
+ * command handler classes for each input operation using a registry pattern.
  */
-class UNREALMCP_API FUnrealMCPEditorCommands
+class UNREALMCP_API FUnrealMCPInputCommands
 {
 public:
-    FUnrealMCPEditorCommands();
+    FUnrealMCPInputCommands();
 
     /**
-     * Route an editor command to the appropriate handler.
+     * Route an input command to the appropriate handler.
      *
      * @param CommandType The type of command to execute
      * @param Params JSON parameters for the command
@@ -28,4 +28,4 @@ private:
 
     /** Registry mapping command types to their handler functions */
     TMap<FString, FCommandHandler> CommandHandlers;
-}; 
+};

@@ -16,8 +16,7 @@ auto FSetStaticMeshProperties::Handle(const TSharedPtr<FJsonObject>& Params) -> 
 
 	const UnrealMCP::FStaticMeshParams& MeshParams = ParamsResult.GetValue();
 
-	// Delegate to service layer
-	UnrealMCP::FVoidResult Result =
+	const UnrealMCP::FVoidResult Result =
 		UnrealMCP::FBlueprintService::SetStaticMeshProperties(
 			MeshParams.BlueprintName,
 			MeshParams.ComponentName,

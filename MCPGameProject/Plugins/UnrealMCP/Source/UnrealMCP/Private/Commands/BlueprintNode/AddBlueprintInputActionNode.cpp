@@ -1,14 +1,12 @@
 #include "Commands/BlueprintNode/AddBlueprintInputActionNode.h"
 #include "Commands/CommonUtils.h"
-#include "Engine/Blueprint.h"
-#include "EdGraph/EdGraph.h"
+#include "Services/BlueprintGraphService.h"
 #include "K2Node_InputAction.h"
-#include "Kismet2/BlueprintEditorUtils.h"
 
 auto FAddBlueprintInputActionNode::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
-	// Get required parameters
+	// Parse parameters
 	FString BlueprintName;
 	if (!Params->TryGetStringField(TEXT("blueprint_name"), BlueprintName)) {
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'blueprint_name' parameter"));
@@ -19,38 +17,23 @@ auto FAddBlueprintInputActionNode::Handle(
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'action_name' parameter"));
 	}
 
-	// Get position parameters (optional)
 	FVector2D NodePosition(0.0f, 0.0f);
 	if (Params->HasField(TEXT("node_position"))) {
 		NodePosition = FCommonUtils::GetVector2DFromJson(Params, TEXT("node_position"));
 	}
 
-	// Find the blueprint
-	UBlueprint* Blueprint = FCommonUtils::FindBlueprint(BlueprintName);
-	if (!Blueprint) {
-		return FCommonUtils::CreateErrorResponse(
-			FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
-	}
-
-	// Get the event graph
-	UEdGraph* EventGraph = FCommonUtils::FindOrCreateEventGraph(Blueprint);
-	if (!EventGraph) {
-		return FCommonUtils::CreateErrorResponse(TEXT("Failed to get event graph"));
-	}
-
-	// Create the input action node
-	UK2Node_InputAction* InputActionNode = FCommonUtils::CreateInputActionNode(
-		EventGraph,
+	const UnrealMCP::TResult<UK2Node_InputAction*> Result = UnrealMCP::FBlueprintGraphService::AddInputActionNode(
+		BlueprintName,
 		ActionName,
-		NodePosition);
-	if (!InputActionNode) {
-		return FCommonUtils::CreateErrorResponse(TEXT("Failed to create input action node"));
+		NodePosition
+	);
+
+	if (Result.IsFailure()) {
+		return FCommonUtils::CreateErrorResponse(Result.GetError());
 	}
 
-	// Mark the blueprint as modified
-	FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
-
-	TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-	ResultObj->SetStringField(TEXT("node_id"), InputActionNode->NodeGuid.ToString());
-	return ResultObj;
+	// Build JSON response
+	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
+	Response->SetStringField(TEXT("node_id"), Result.GetValue()->NodeGuid.ToString());
+	return Response;
 }

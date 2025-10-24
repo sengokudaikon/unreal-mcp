@@ -5,11 +5,11 @@
 /**
  * Handles operations for spawning blueprint actors dynamically.
  */
-class UNREALMCP_API FSpawnBlueprint
+class UNREALMCP_API FSpawnActor
 {
 public:
-	FSpawnBlueprint() = default;
-	~FSpawnBlueprint() = default;
+	FSpawnActor() = default;
+	~FSpawnActor() = default;
 
 	/**
 	 * Handle blueprint spawning command

@@ -2,7 +2,7 @@
 
 #include "Commands/Blueprint/CreateBlueprint.h"
 #include "Commands/Blueprint/CompileBlueprint.h"
-#include "Commands/Blueprint/SpawnBlueprint.h"
+#include "Commands/Blueprint/SpawnActor.h"
 #include "Commands/Blueprint/SetComponentProperty.h"
 #include "Commands/Blueprint/SetPhysicsProperties.h"
 #include "Commands/Blueprint/SetBlueprintProperty.h"
@@ -14,7 +14,7 @@
 FUnrealMCPBlueprintCommands::FUnrealMCPBlueprintCommands() {
 	CommandHandlers.Add(TEXT("create_blueprint"), &FCreateBlueprint::Handle);
 	CommandHandlers.Add(TEXT("compile_blueprint"), &FCompileBlueprint::Handle);
-	CommandHandlers.Add(TEXT("spawn_blueprint_actor"), &FSpawnBlueprint::Handle);
+	CommandHandlers.Add(TEXT("spawn_blueprint_actor"), &FSpawnActor::Handle);
 	CommandHandlers.Add(TEXT("add_component_to_blueprint"), &FAddComponent::Handle);
 	CommandHandlers.Add(TEXT("set_component_property"), &FSetComponentProperty::Handle);
 	CommandHandlers.Add(TEXT("set_physics_properties"), &FSetPhysicsProperties::Handle);

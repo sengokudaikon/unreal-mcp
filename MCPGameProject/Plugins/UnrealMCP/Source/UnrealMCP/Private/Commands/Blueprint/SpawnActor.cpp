@@ -1,10 +1,10 @@
-#include "Commands/Blueprint/SpawnBlueprint.h"
+#include "Commands/Blueprint/SpawnActor.h"
 
 #include "Commands/CommonUtils.h"
 #include "Services/BlueprintService.h"
 #include "Core/MCPTypes.h"
 
-auto FSpawnBlueprint::Handle(
+auto FSpawnActor::Handle(
 	const TSharedPtr<FJsonObject>& Params
 ) -> TSharedPtr<FJsonObject> {
 	UnrealMCP::TResult<UnrealMCP::FBlueprintSpawnParams> ParamsResult =

@@ -4,30 +4,28 @@
 #include "Json.h"
 
 /**
- * Handler class for Blueprint Node-related MCP commands
+ * Handler class for Blueprint Node-related MCP commands.
+ *
+ * This class acts as a command router, delegating to specialized
+ * command handler classes for each blueprint node operation using a registry pattern.
  */
 class UNREALMCP_API FUnrealMCPBlueprintNodeCommands {
 public:
 	FUnrealMCPBlueprintNodeCommands();
 
-	auto HandleCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+	/**
+	 * Route a blueprint node command to the appropriate handler.
+	 *
+	 * @param CommandType The type of command to execute
+	 * @param Params JSON parameters for the command
+	 * @return JSON response object
+	 */
+	TSharedPtr<FJsonObject> HandleCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params);
 
 private:
-	static auto HandleConnectBlueprintNodes(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+	/** Type definition for command handler function pointers */
+	using FCommandHandler = TSharedPtr<FJsonObject> (*)(const TSharedPtr<FJsonObject>&);
 
-	static auto HandleAddBlueprintGetSelfComponentReference(
-		const TSharedPtr<FJsonObject>& Params
-	) -> TSharedPtr<FJsonObject>;
-
-	static auto HandleAddBlueprintEvent(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
-	static auto HandleAddBlueprintFunctionCall(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
-	static auto HandleAddBlueprintVariable(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
-	static auto HandleAddBlueprintInputActionNode(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
-	static auto HandleAddBlueprintSelfReference(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
-	static auto HandleFindBlueprintNodes(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+	/** Registry mapping command types to their handler functions */
+	TMap<FString, FCommandHandler> CommandHandlers;
 };

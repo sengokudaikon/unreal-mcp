@@ -13,15 +13,11 @@ public:
 	TSharedPtr<FJsonObject> HandleCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params);
 
 private:
-	auto HandleCreateBlueprint(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
 	auto HandleAddComponentToBlueprint(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
 
 	auto HandleSetComponentProperty(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
 
 	auto HandleSetPhysicsProperties(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
-
-	auto HandleCompileBlueprint(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
 
 	auto HandleSetBlueprintProperty(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
 

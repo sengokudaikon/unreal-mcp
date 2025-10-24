@@ -7,7 +7,7 @@
 #include "Editor.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Components/ActorComponent.h"
-#include "SimpleConstructionScript.h"
+#include "Engine/SimpleConstructionScript.h"
 #include "Kismet/GameplayStatics.h"
 
 /**

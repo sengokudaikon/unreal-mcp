@@ -20,6 +20,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
 
 FUnrealMCPBlueprintCommands::FUnrealMCPBlueprintCommands()
 {
@@ -174,90 +175,52 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleAddComponentToBluepri
     FString ComponentType;
     if (!Params->TryGetStringField(TEXT("component_type"), ComponentType))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'type' parameter"));
+        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_type' parameter"));
     }
 
     FString ComponentName;
     if (!Params->TryGetStringField(TEXT("component_name"), ComponentName))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'name' parameter"));
+        return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Missing 'component_name' parameter"));
     }
 
-    // Find the blueprint
-    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
-    if (!Blueprint)
+    // Extract arrays for transform
+    TArray<float> Location, Rotation, Scale;
+
+    if (Params->HasField(TEXT("location")))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+        FVector LocVec = FUnrealMCPCommonUtils::GetVectorFromJson(Params, TEXT("location"));
+        Location = {LocVec.X, LocVec.Y, LocVec.Z};
     }
 
-    // Create the component - dynamically find the component class by name
-    UClass* ComponentClass = nullptr;
-
-    // Try to find the class with exact name first
-    ComponentClass = FindFirstObject<UClass>(*ComponentType, EFindFirstObjectOptions::NativeFirst);
-
-    // If not found, try with "Component" suffix
-    if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
+    if (Params->HasField(TEXT("rotation")))
     {
-        FString ComponentTypeWithSuffix = ComponentType + TEXT("Component");
-        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithSuffix, EFindFirstObjectOptions::NativeFirst);
+        FRotator Rot = FUnrealMCPCommonUtils::GetRotatorFromJson(Params, TEXT("rotation"));
+        Rotation = {Rot.Pitch, Rot.Yaw, Rot.Roll};
     }
 
-    // If still not found, try with "U" prefix
-    if (!ComponentClass && !ComponentType.StartsWith(TEXT("U")))
+    if (Params->HasField(TEXT("scale")))
     {
-        FString ComponentTypeWithPrefix = TEXT("U") + ComponentType;
-        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithPrefix, EFindFirstObjectOptions::NativeFirst);
-
-        // Try with both prefix and suffix
-        if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
-        {
-            FString ComponentTypeWithBoth = TEXT("U") + ComponentType + TEXT("Component");
-            ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithBoth, EFindFirstObjectOptions::NativeFirst);
-        }
+        FVector ScaleVec = FUnrealMCPCommonUtils::GetVectorFromJson(Params, TEXT("scale"));
+        Scale = {ScaleVec.X, ScaleVec.Y, ScaleVec.Z};
     }
-    
-    // Verify that the class is a valid component type
-    if (!ComponentClass || !ComponentClass->IsChildOf(UActorComponent::StaticClass()))
+
+    // Extract mesh type and component properties
+    FString MeshType;
+    TSharedPtr<FJsonObject> ComponentProperties;
+
+    if (Params->HasField(TEXT("static_mesh")))
     {
-        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown component type: %s"), *ComponentType));
+        MeshType = Params->GetStringField(TEXT("static_mesh"));
     }
 
-    // Add the component to the blueprint
-    USCS_Node* NewNode = Blueprint->SimpleConstructionScript->CreateNode(ComponentClass, *ComponentName);
-    if (NewNode)
+    if (Params->HasField(TEXT("component_properties")))
     {
-        // Set transform if provided
-        USceneComponent* SceneComponent = Cast<USceneComponent>(NewNode->ComponentTemplate);
-        if (SceneComponent)
-        {
-            if (Params->HasField(TEXT("location")))
-            {
-                SceneComponent->SetRelativeLocation(FUnrealMCPCommonUtils::GetVectorFromJson(Params, TEXT("location")));
-            }
-            if (Params->HasField(TEXT("rotation")))
-            {
-                SceneComponent->SetRelativeRotation(FUnrealMCPCommonUtils::GetRotatorFromJson(Params, TEXT("rotation")));
-            }
-            if (Params->HasField(TEXT("scale")))
-            {
-                SceneComponent->SetRelativeScale3D(FUnrealMCPCommonUtils::GetVectorFromJson(Params, TEXT("scale")));
-            }
-        }
-
-        // Add to root if no parent specified
-        Blueprint->SimpleConstructionScript->AddNode(NewNode);
-
-        // Compile the blueprint
-        FKismetEditorUtilities::CompileBlueprint(Blueprint);
-
-        TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
-        ResultObj->SetStringField(TEXT("component_name"), ComponentName);
-        ResultObj->SetStringField(TEXT("component_type"), ComponentType);
-        return ResultObj;
+        ComponentProperties = Params->GetObjectField(TEXT("component_properties"));
     }
 
-    return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to add component to blueprint"));
+    // Call the helper function to do the actual work
+    return AddComponentToBlueprint(BlueprintName, ComponentType, ComponentName, MeshType, Location, Rotation, Scale, ComponentProperties);
 }
 
 TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetComponentProperty(const TSharedPtr<FJsonObject>& Params)
@@ -850,7 +813,8 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleCompileBlueprint(cons
     return ResultObj;
 }
 
-TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(const TSharedPtr<FJsonObject>& Params)
+auto FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(
+    const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>
 {
     // Get required parameters
     FString BlueprintName;
@@ -920,59 +884,8 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(c
     UE_LOG(LogTemp, Log, TEXT("Spawning blueprint actor '%s' from blueprint '%s' at location (%s)"),
         *ActorName, *BlueprintName, *Location.ToString());
 
-    // PROPER SPAWNING: Use UE5's safer spawning approach with validation
-    AActor* NewActor = nullptr;
-
-    // Phase 1: Begin spawning actor with proper parameters
-    FActorSpawnParameters SpawnParams;
-    SpawnParams.Name = FName(*ActorName);
-    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-    // VALIDATION: Check for actor name conflicts
-    if (World->IsActorNameAvailable(FName(*ActorName)) == false)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Actor name '%s' already exists, appending timestamp"), *ActorName);
-        const FDateTime Now = FDateTime::Now();
-        ActorName = FString::Printf(TEXT("%s_%d"), *ActorName, Now.GetTicks());
-        SpawnParams.Name = FName(*ActorName);
-    }
-
-    try
-    {
-        // Use the safer DeferredSpawnActor approach for blueprints with components
-        if (Blueprint->SimpleConstructionScript && Blueprint->SimpleConstructionScript->GetAllNodes().Num() > 0)
-        {
-            // Complex blueprint with components - use deferred spawning
-            NewActor = World->DeferredSpawnActor<AActor>(Blueprint->GeneratedClass, SpawnTransform, SpawnParams);
-            if (NewActor)
-            {
-                // Finish spawning - this handles all the construction script execution
-                NewActor->FinishSpawning(SpawnTransform);
-                UE_LOG(LogTemp, Log, TEXT("Successfully spawned complex blueprint actor using DeferredSpawnActor"));
-            }
-        }
-        else
-        {
-            // Simple blueprint - use direct spawn with error handling
-            NewActor = World->SpawnActor<AActor>(Blueprint->GeneratedClass, SpawnTransform, SpawnParams);
-            if (NewActor)
-            {
-                UE_LOG(LogTemp, Log, TEXT("Successfully spawned simple blueprint actor using SpawnActor"));
-            }
-        }
-    }
-    catch (const std::exception& Ex)
-    {
-        FString ErrorMessage = FString::Printf(TEXT("Exception during blueprint spawning: %s"), ANSI_TO_TCHAR(Ex.what()));
-        UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
-        return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
-    }
-    catch (...)
-    {
-        FString ErrorMessage = TEXT("Unknown exception during blueprint spawning");
-        UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
-        return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
-    }
+    // Use the helper function for safe blueprint spawning
+    AActor* NewActor = SpawnBlueprintActorSafely(Blueprint, ActorName, SpawnTransform, World);
 
     if (NewActor)
     {
@@ -982,6 +895,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(c
         // Register the actor if it's not already registered
         if (!NewActor->IsActorInitialized())
         {
+            // FIXME wrong method
             NewActor->InitializeActor();
         }
 
@@ -1263,4 +1177,250 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetPawnProperties(con
     ResponseObj->SetBoolField(TEXT("success"), bAnyPropertiesSet);
     ResponseObj->SetObjectField(TEXT("results"), ResultsObj);
     return ResponseObj;
+}
+
+// Helper function to safely spawn blueprint actors with proper validation
+AActor* FUnrealMCPBlueprintCommands::SpawnBlueprintActorSafely(UBlueprint* Blueprint, const FString& ActorName, const FTransform& SpawnTransform, UWorld* World)
+{
+    // Comprehensive pre-spawn validation to prevent timeouts
+    if (!Blueprint)
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnBlueprintActorSafely: Invalid blueprint - null pointer"));
+        return nullptr;
+    }
+
+    if (!World)
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnBlueprintActorSafely: Invalid world context - null pointer"));
+        return nullptr;
+    }
+
+    // Check blueprint compilation status first
+    if (Blueprint->Status != BS_UpToDate)
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnBlueprintActorSafely: Blueprint '%s' is not up to date (Status: %d)"), *Blueprint->GetName(), (int32)Blueprint->Status);
+
+        // Provide detailed status information
+        switch (Blueprint->Status)
+        {
+        case BS_Unknown:
+            UE_LOG(LogTemp, Error, TEXT("  Status: Unknown - blueprint may be corrupted"));
+            break;
+        case BS_Dirty:
+            UE_LOG(LogTemp, Error, TEXT("  Status: Dirty - blueprint has unsaved changes"));
+            break;
+        case BS_Error:
+            UE_LOG(LogTemp, Error, TEXT("  Status: Error - blueprint has compilation errors"));
+            break;
+        case BS_BeingCreated:
+            UE_LOG(LogTemp, Error, TEXT("  Status: Being Created - blueprint is still being created"));
+            break;
+        default:
+            UE_LOG(LogTemp, Error, TEXT("  Status: Other (%d)"), (int32)Blueprint->Status);
+            break;
+        }
+        return nullptr;
+    }
+
+    if (!Blueprint->GeneratedClass)
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnBlueprintActorSafely: Blueprint '%s' has no generated class - blueprint may not be compiled properly"), *Blueprint->GetName());
+        return nullptr;
+    }
+
+    // Validate the generated class
+    if (!Blueprint->GeneratedClass->IsChildOf<AActor>())
+    {
+        UE_LOG(LogTemp, Error, TEXT("SpawnBlueprintActorSafely: Blueprint '%s' generated class is not a child of AActor"), *Blueprint->GetName());
+        return nullptr;
+    }
+
+    // Check for complex blueprint components that might cause timeouts
+    bool bIsComplexBlueprint = false;
+    FString ComplexityInfo;
+
+    if (Blueprint->SimpleConstructionScript)
+    {
+        int32 ComponentCount = Blueprint->SimpleConstructionScript->GetAllNodes().Num();
+        if (ComponentCount > 10)
+        {
+            bIsComplexBlueprint = true;
+            ComplexityInfo = FString::Printf(TEXT("High component count: %d"), ComponentCount);
+        }
+    }
+
+    // Check for timeline components (can cause spawning issues)
+    if (Blueprint->Timelines.Num() > 0)
+    {
+        bIsComplexBlueprint = true;
+        ComplexityInfo += FString::Printf(TEXT(" Timelines: %d"), Blueprint->Timelines.Num());
+    }
+
+    if (bIsComplexBlueprint)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SpawnBlueprintActorSafely: Blueprint '%s' appears complex (%s) - spawn may take longer"),
+            *Blueprint->GetName(), *ComplexityInfo);
+    }
+
+    // Set up spawn parameters
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    // Check if name is already in use and modify if necessary
+    FString FinalActorName = ActorName;
+    if (!World->IsActorNameAvailable(FName(*FinalActorName)))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SpawnBlueprintActorSafely: Actor name '%s' already exists, appending timestamp"), *FinalActorName);
+        const FDateTime Now = FDateTime::Now();
+        FinalActorName = FString::Printf(TEXT("%s_%d"), *FinalActorName, Now.GetTicks());
+    }
+    SpawnParams.Name = FName(*FinalActorName);
+
+    UE_LOG(LogTemp, Log, TEXT("SpawnBlueprintActorSafely: Attempting to spawn '%s' from blueprint '%s'"), *FinalActorName, *Blueprint->GetName());
+
+    // Spawn the actor using the standard UE5 method
+    AActor* NewActor = World->SpawnActor<AActor>(Blueprint->GeneratedClass, SpawnTransform, SpawnParams);
+
+    if (NewActor)
+    {
+        // Set the actor label explicitly
+        NewActor->SetActorLabel(FinalActorName);
+
+        UE_LOG(LogTemp, Log, TEXT("SpawnBlueprintActorSafely: Successfully spawned blueprint actor '%s' (Class: %s)"),
+            *FinalActorName, *NewActor->GetClass()->GetName());
+    }
+    else
+    {
+        // Comprehensive error logging for debugging
+        UE_LOG(LogTemp, Error, TEXT("SpawnBlueprintActorSafely: Failed to spawn blueprint actor '%s'"), *FinalActorName);
+        UE_LOG(LogTemp, Error, TEXT("  Blueprint: %s"), *Blueprint->GetName());
+        UE_LOG(LogTemp, Error, TEXT("  Spawn Location: %s"), *SpawnTransform.GetLocation().ToString());
+        UE_LOG(LogTemp, Error, TEXT("  Generated Class: %s"), *Blueprint->GeneratedClass->GetName());
+        UE_LOG(LogTemp, Error, TEXT("  World Context: %s"), World ? *World->GetName() : TEXT("None"));
+
+        // Additional diagnostic information
+        if (Blueprint->SimpleConstructionScript)
+        {
+            UE_LOG(LogTemp, Error, TEXT("  SCS Components: %d"), Blueprint->SimpleConstructionScript->GetAllNodes().Num());
+        }
+        UE_LOG(LogTemp, Error, TEXT("  Parent Class: %s"), Blueprint->ParentClass ? *Blueprint->ParentClass->GetName() : TEXT("None"));
+    }
+
+    return NewActor;
+}
+
+TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::AddComponentToBlueprint(
+    const FString& BlueprintName,
+    const FString& ComponentType,
+    const FString& ComponentName,
+    const FString& MeshType,
+    const TArray<float>& Location,
+    const TArray<float>& Rotation,
+    const TArray<float>& Scale,
+    const TSharedPtr<FJsonObject>& ComponentProperties)
+{
+    // Find the blueprint
+    UBlueprint* Blueprint = FUnrealMCPCommonUtils::FindBlueprint(BlueprintName);
+    if (!Blueprint)
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
+    }
+
+    // Create the component - dynamically find the component class by name
+    UClass* ComponentClass = nullptr;
+
+    // Try to find the class with exact name first
+    ComponentClass = FindFirstObject<UClass>(*ComponentType, EFindFirstObjectOptions::NativeFirst);
+
+    // If not found, try with "Component" suffix
+    if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
+    {
+        FString ComponentTypeWithSuffix = ComponentType + TEXT("Component");
+        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithSuffix, EFindFirstObjectOptions::NativeFirst);
+    }
+
+    // If still not found, try with "U" prefix
+    if (!ComponentClass && !ComponentType.StartsWith(TEXT("U")))
+    {
+        FString ComponentTypeWithPrefix = TEXT("U") + ComponentType;
+        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithPrefix, EFindFirstObjectOptions::NativeFirst);
+
+        // Try with both prefix and suffix
+        if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
+        {
+            FString ComponentTypeWithBoth = TEXT("U") + ComponentType + TEXT("Component");
+            ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithBoth, EFindFirstObjectOptions::NativeFirst);
+        }
+    }
+
+    // Verify that the class is a valid component type
+    if (!ComponentClass || !ComponentClass->IsChildOf(UActorComponent::StaticClass()))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Unknown component type: %s"), *ComponentType));
+    }
+
+    // Add the component to the blueprint
+    USCS_Node* NewNode = Blueprint->SimpleConstructionScript->CreateNode(ComponentClass, *ComponentName);
+    if (NewNode)
+    {
+        // Set transform if provided
+        USceneComponent* SceneComponent = Cast<USceneComponent>(NewNode->ComponentTemplate);
+        if (SceneComponent)
+        {
+            if (Location.Num() == 3)
+            {
+                SceneComponent->SetRelativeLocation(FVector(Location[0], Location[1], Location[2]));
+            }
+            if (Rotation.Num() == 3)
+            {
+                SceneComponent->SetRelativeRotation(FRotator(Rotation[0], Rotation[1], Rotation[2]));
+            }
+            if (Scale.Num() == 3)
+            {
+                SceneComponent->SetRelativeScale3D(FVector(Scale[0], Scale[1], Scale[2]));
+            }
+        }
+
+        // Set static mesh if provided for StaticMeshComponent
+        UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(NewNode->ComponentTemplate);
+        if (MeshComponent && !MeshType.IsEmpty())
+        {
+            UStaticMesh* Mesh = Cast<UStaticMesh>(UEditorAssetLibrary::LoadAsset(MeshType));
+            if (Mesh)
+            {
+                MeshComponent->SetStaticMesh(Mesh);
+            }
+        }
+
+        // Apply additional component properties if provided
+        if (ComponentProperties.IsValid())
+        {
+            for (const auto& PropertyPair : ComponentProperties->Values)
+            {
+                FString PropertyName = PropertyPair.Key;
+                TSharedPtr<FJsonValue> PropertyValue = PropertyPair.Value;
+
+                FString ErrorMessage;
+                if (!FUnrealMCPCommonUtils::SetObjectProperty(NewNode->ComponentTemplate, PropertyName, PropertyValue, ErrorMessage))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Failed to set component property %s: %s"), *PropertyName, *ErrorMessage);
+                }
+            }
+        }
+
+        // Add to root if no parent specified
+        Blueprint->SimpleConstructionScript->AddNode(NewNode);
+
+        // Compile the blueprint
+        FKismetEditorUtilities::CompileBlueprint(Blueprint);
+
+        TSharedPtr<FJsonObject> ResultObj = MakeShared<FJsonObject>();
+        ResultObj->SetStringField(TEXT("blueprint_name"), BlueprintName);
+        ResultObj->SetStringField(TEXT("component_name"), ComponentName);
+        ResultObj->SetStringField(TEXT("component_type"), ComponentType);
+        ResultObj->SetBoolField(TEXT("success"), true);
+        return ResultObj;
+    }
+
+    return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to add component to blueprint"));
 } 

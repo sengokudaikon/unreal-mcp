@@ -6,22 +6,28 @@
 /**
  * Handler class for Blueprint Node-related MCP commands
  */
-class UNREALMCP_API FUnrealMCPBlueprintNodeCommands
-{
+class UNREALMCP_API FUnrealMCPBlueprintNodeCommands {
 public:
-    FUnrealMCPBlueprintNodeCommands();
+	FUnrealMCPBlueprintNodeCommands();
 
-    // Handle blueprint node commands
-    TSharedPtr<FJsonObject> HandleCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params);
+	auto HandleCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
 
 private:
-    // Specific blueprint node command handlers
-    TSharedPtr<FJsonObject> HandleConnectBlueprintNodes(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleAddBlueprintGetSelfComponentReference(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleAddBlueprintEvent(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleAddBlueprintFunctionCall(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleAddBlueprintVariable(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleAddBlueprintInputActionNode(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleAddBlueprintSelfReference(const TSharedPtr<FJsonObject>& Params);
-    TSharedPtr<FJsonObject> HandleFindBlueprintNodes(const TSharedPtr<FJsonObject>& Params);
-}; 
+	static auto HandleConnectBlueprintNodes(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleAddBlueprintGetSelfComponentReference(
+		const TSharedPtr<FJsonObject>& Params
+	) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleAddBlueprintEvent(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleAddBlueprintFunctionCall(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleAddBlueprintVariable(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleAddBlueprintInputActionNode(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleAddBlueprintSelfReference(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+
+	static auto HandleFindBlueprintNodes(const TSharedPtr<FJsonObject>& Params) -> TSharedPtr<FJsonObject>;
+};

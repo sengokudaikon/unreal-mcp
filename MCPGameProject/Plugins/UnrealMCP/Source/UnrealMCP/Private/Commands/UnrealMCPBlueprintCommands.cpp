@@ -194,26 +194,26 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleAddComponentToBluepri
     UClass* ComponentClass = nullptr;
 
     // Try to find the class with exact name first
-    ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentType);
-    
+    ComponentClass = FindFirstObject<UClass>(*ComponentType, EFindFirstObjectOptions::NativeFirst);
+
     // If not found, try with "Component" suffix
     if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
     {
         FString ComponentTypeWithSuffix = ComponentType + TEXT("Component");
-        ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentTypeWithSuffix);
+        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithSuffix, EFindFirstObjectOptions::NativeFirst);
     }
-    
+
     // If still not found, try with "U" prefix
     if (!ComponentClass && !ComponentType.StartsWith(TEXT("U")))
     {
         FString ComponentTypeWithPrefix = TEXT("U") + ComponentType;
-        ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentTypeWithPrefix);
-        
+        ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithPrefix, EFindFirstObjectOptions::NativeFirst);
+
         // Try with both prefix and suffix
         if (!ComponentClass && !ComponentType.EndsWith(TEXT("Component")))
         {
             FString ComponentTypeWithBoth = TEXT("U") + ComponentType + TEXT("Component");
-            ComponentClass = FindObject<UClass>(ANY_PACKAGE, *ComponentTypeWithBoth);
+            ComponentClass = FindFirstObject<UClass>(*ComponentTypeWithBoth, EFindFirstObjectOptions::NativeFirst);
         }
     }
     
@@ -872,6 +872,27 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(c
         return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint not found: %s"), *BlueprintName));
     }
 
+    // VALIDATION: Check if blueprint is properly compiled and has valid GeneratedClass
+    if (!Blueprint->GeneratedClass)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Blueprint '%s' has no GeneratedClass - attempting to compile"), *BlueprintName);
+
+        // Try to compile the blueprint first
+        FKismetEditorUtilities::CompileBlueprint(Blueprint);
+
+        // Check again after compilation
+        if (!Blueprint->GeneratedClass)
+        {
+            return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint '%s' failed to generate a valid class"), *BlueprintName));
+        }
+    }
+
+    // VALIDATION: Check if the GeneratedClass is a valid Actor subclass
+    if (!Blueprint->GeneratedClass->IsChildOf(AActor::StaticClass()))
+    {
+        return FUnrealMCPCommonUtils::CreateErrorResponse(FString::Printf(TEXT("Blueprint '%s' is not an Actor-based blueprint"), *BlueprintName));
+    }
+
     // Get transform parameters
     FVector Location(0.0f, 0.0f, 0.0f);
     FRotator Rotation(0.0f, 0.0f, 0.0f);
@@ -885,7 +906,7 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(c
         Rotation = FUnrealMCPCommonUtils::GetRotatorFromJson(Params, TEXT("rotation"));
     }
 
-    // Spawn the actor
+    // Get the world context
     UWorld* World = GEditor->GetEditorWorldContext().World();
     if (!World)
     {
@@ -896,14 +917,99 @@ TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSpawnBlueprintActor(c
     SpawnTransform.SetLocation(Location);
     SpawnTransform.SetRotation(FQuat(Rotation));
 
-    AActor* NewActor = World->SpawnActor<AActor>(Blueprint->GeneratedClass, SpawnTransform);
-    if (NewActor)
+    UE_LOG(LogTemp, Log, TEXT("Spawning blueprint actor '%s' from blueprint '%s' at location (%s)"),
+        *ActorName, *BlueprintName, *Location.ToString());
+
+    // PROPER SPAWNING: Use UE5's safer spawning approach with validation
+    AActor* NewActor = nullptr;
+
+    // Phase 1: Begin spawning actor with proper parameters
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Name = FName(*ActorName);
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    // VALIDATION: Check for actor name conflicts
+    if (World->IsActorNameAvailable(FName(*ActorName)) == false)
     {
-        NewActor->SetActorLabel(*ActorName);
-        return FUnrealMCPCommonUtils::ActorToJsonObject(NewActor, true);
+        UE_LOG(LogTemp, Warning, TEXT("Actor name '%s' already exists, appending timestamp"), *ActorName);
+        const FDateTime Now = FDateTime::Now();
+        ActorName = FString::Printf(TEXT("%s_%d"), *ActorName, Now.GetTicks());
+        SpawnParams.Name = FName(*ActorName);
     }
 
-    return FUnrealMCPCommonUtils::CreateErrorResponse(TEXT("Failed to spawn blueprint actor"));
+    try
+    {
+        // Use the safer DeferredSpawnActor approach for blueprints with components
+        if (Blueprint->SimpleConstructionScript && Blueprint->SimpleConstructionScript->GetAllNodes().Num() > 0)
+        {
+            // Complex blueprint with components - use deferred spawning
+            NewActor = World->DeferredSpawnActor<AActor>(Blueprint->GeneratedClass, SpawnTransform, SpawnParams);
+            if (NewActor)
+            {
+                // Finish spawning - this handles all the construction script execution
+                NewActor->FinishSpawning(SpawnTransform);
+                UE_LOG(LogTemp, Log, TEXT("Successfully spawned complex blueprint actor using DeferredSpawnActor"));
+            }
+        }
+        else
+        {
+            // Simple blueprint - use direct spawn with error handling
+            NewActor = World->SpawnActor<AActor>(Blueprint->GeneratedClass, SpawnTransform, SpawnParams);
+            if (NewActor)
+            {
+                UE_LOG(LogTemp, Log, TEXT("Successfully spawned simple blueprint actor using SpawnActor"));
+            }
+        }
+    }
+    catch (const std::exception& Ex)
+    {
+        FString ErrorMessage = FString::Printf(TEXT("Exception during blueprint spawning: %s"), ANSI_TO_TCHAR(Ex.what()));
+        UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
+        return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
+    }
+    catch (...)
+    {
+        FString ErrorMessage = TEXT("Unknown exception during blueprint spawning");
+        UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
+        return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
+    }
+
+    if (NewActor)
+    {
+        // Set the actor label explicitly (in addition to spawn name)
+        NewActor->SetActorLabel(*ActorName);
+
+        // Register the actor if it's not already registered
+        if (!NewActor->IsActorInitialized())
+        {
+            NewActor->InitializeActor();
+        }
+
+        UE_LOG(LogTemp, Log, TEXT("Blueprint actor '%s' spawned successfully at location (%s)"),
+            *ActorName, *NewActor->GetActorLocation().ToString());
+
+        return FUnrealMCPCommonUtils::ActorToJsonObject(NewActor, true);
+    }
+    else
+    {
+        FString ErrorMessage = FString::Printf(TEXT("Failed to spawn blueprint actor '%s' - blueprint may have compilation errors or missing dependencies"), *BlueprintName);
+        UE_LOG(LogTemp, Error, TEXT("%s"), *ErrorMessage);
+
+        // Provide additional diagnostic information
+        if (Blueprint->Status != BS_UpToDate)
+        {
+            ErrorMessage += TEXT(" (Blueprint compilation status: ");
+            switch (Blueprint->Status)
+            {
+                case BS_Error: ErrorMessage += TEXT("Error)"); break;
+                case BS_Dirty: ErrorMessage += TEXT("Dirty/Needs Compile)"); break;
+                case BS_Unknown: ErrorMessage += TEXT("Unknown)"); break;
+                default: ErrorMessage += TEXT("Other)"); break;
+            }
+        }
+
+        return FUnrealMCPCommonUtils::CreateErrorResponse(ErrorMessage);
+    }
 }
 
 TSharedPtr<FJsonObject> FUnrealMCPBlueprintCommands::HandleSetBlueprintProperty(const TSharedPtr<FJsonObject>& Params)

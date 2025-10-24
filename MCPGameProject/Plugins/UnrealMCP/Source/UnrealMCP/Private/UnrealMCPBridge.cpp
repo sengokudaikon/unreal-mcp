@@ -263,8 +263,15 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
             {
                 ResultJson = BlueprintNodeCommands->HandleCommand(CommandType, Params);
             }
-            // Project Commands
-            else if (CommandType == TEXT("create_input_mapping"))
+            // Project Commands (Legacy and Enhanced Input)
+            else if (CommandType == TEXT("create_input_mapping") ||
+                     CommandType == TEXT("create_enhanced_input_action") ||
+                     CommandType == TEXT("create_input_mapping_context") ||
+                     CommandType == TEXT("add_enhanced_input_mapping") ||
+                     CommandType == TEXT("remove_enhanced_input_mapping") ||
+                     CommandType == TEXT("apply_mapping_context") ||
+                     CommandType == TEXT("remove_mapping_context") ||
+                     CommandType == TEXT("clear_all_mapping_contexts"))
             {
                 ResultJson = ProjectCommands->HandleCommand(CommandType, Params);
             }

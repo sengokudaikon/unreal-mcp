@@ -153,8 +153,25 @@ UBlueprint* FCommonUtils::FindBlueprint(const FString& BlueprintName)
 
 UBlueprint* FCommonUtils::FindBlueprintByName(const FString& BlueprintName)
 {
-    FString AssetPath = TEXT("/Game/Blueprints/") + BlueprintName;
-    return LoadObject<UBlueprint>(nullptr, *AssetPath);
+    // Try multiple common locations for blueprints
+    TArray<FString> PossiblePaths = {
+        TEXT("/Game/Blueprints/") + BlueprintName,
+        TEXT("/Game/Tests/") + BlueprintName,
+        TEXT("/Game/") + BlueprintName
+    };
+
+    for (const FString& AssetPath : PossiblePaths)
+    {
+        UBlueprint* FoundBlueprint = LoadObject<UBlueprint>(nullptr, *AssetPath);
+        if (FoundBlueprint)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Found blueprint '%s' at: %s"), *BlueprintName, *AssetPath);
+            return FoundBlueprint;
+        }
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("Blueprint '%s' not found in any standard location"), *BlueprintName);
+    return nullptr;
 }
 
 UEdGraph* FCommonUtils::FindOrCreateEventGraph(UBlueprint* Blueprint)

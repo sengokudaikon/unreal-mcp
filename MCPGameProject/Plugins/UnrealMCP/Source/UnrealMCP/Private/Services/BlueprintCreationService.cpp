@@ -6,6 +6,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/Character.h"
 #include "EditorAssetLibrary.h"
 #include "Kismet2/KismetEditorUtilities.h"
 
@@ -119,6 +120,11 @@ namespace UnrealMCP
 			return APawn::StaticClass();
 		}
 
+		if (ParentClassName == TEXT("Character"))
+		{
+			return ACharacter::StaticClass();
+		}
+
 		FString NormalizedClassName = ParentClassName;
 
 		// Add 'A' prefix if not present (Unreal Engine convention for Actor-derived classes)
@@ -136,6 +142,11 @@ namespace UnrealMCP
 		if (NormalizedClassName == TEXT("APawn"))
 		{
 			return APawn::StaticClass();
+		}
+
+		if (NormalizedClassName == TEXT("ACharacter"))
+		{
+			return ACharacter::StaticClass();
 		}
 
 		// Try to load from Engine module

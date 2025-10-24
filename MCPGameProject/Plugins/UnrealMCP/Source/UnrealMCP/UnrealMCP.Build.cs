@@ -38,6 +38,20 @@ public class UnrealMCP : ModuleRules
 				"DeveloperSettings"
 			}
 		);
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"AutomationController",
+					"AutomationTest"
+				}
+			);
+
+			// Enable automation tests for editor builds
+			PrivateDefinitions.Add("WITH_DEV_AUTOMATION_TESTS=1");
+		}
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]

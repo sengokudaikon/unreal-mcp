@@ -1,8 +1,20 @@
-# Unreal MCP
+# Unreal MCP Python Server
 
 Python bridge for interacting with Unreal Engine 5.5 using the Model Context Protocol (MCP).
 
-## Setup
+## Installation
+
+### Development Setup
+
+```bash
+# Install with development dependencies
+pip install -e .[dev]
+
+# Or use the Makefile
+make install-dev
+```
+
+### Quick Setup with uv
 
 1. Make sure Python 3.10+ is installed
 2. Install `uv` if you haven't already:
@@ -18,23 +30,86 @@ Python bridge for interacting with Unreal Engine 5.5 using the Model Context Pro
    ```
 4. Install dependencies:
    ```bash
-   uv pip install -e .
+   uv pip install -e .[dev]
    ```
 
-At this point, you can configure your MCP Client (Claude Desktop, Cursor, Windsurf) to use the Unreal MCP Server as per the [Configuring your MCP Client](README.md#configuring-your-mcp-client).
+### Running the Server Manually
 
-## Testing Scripts
+```bash
+python server.py
+```
 
-There are several scripts in the [scripts](./scripts) folder. They are useful for testing the tools and the Unreal Bridge via a direct connection. This means that you do not need to have an MCP Server running.
+### Available Tools
 
-You should make sure you have installed dependencies and/or are running in the `uv` virtual environment in order for the scripts to work.
+#### Blueprint Tools
+- `create_blueprint(name, parent_class)` - Create new Blueprint classes
+- `spawn_blueprint_actor(blueprint_name, actor_name, location, rotation, scale)` - Spawn actors
+- `add_component_to_blueprint(...)` - Add components with type-safe parameters
+- `set_static_mesh_properties(...)` - Configure static meshes
+- `set_physics_properties(...)` - Configure physics with validation
+- `compile_blueprint(blueprint_name)` - Compile Blueprint changes
 
+#### Editor Tools
+- `get_actors_in_level()` - List all actors in current level
+- `find_actors_by_name(pattern)` - Find actors by name pattern
+- `spawn_actor(...)` - Create actors with transform
+- `delete_actor(name)` - Remove actors
+- `set_actor_transform(...)` - Modify actor transforms
+- `focus_viewport(...)` - Focus viewport on targets
+- `take_screenshot(...)` - Capture screenshots
 
-## Troubleshooting
+#### UMG Tools
+- `create_umg_widget_blueprint(...)` - Create widget blueprints
+- `add_text_block_to_widget(...)` - Add text with styling
+- `add_button_to_widget(...)` - Add buttons with events
+- `bind_widget_event(...)` - Bind widget events
+- `add_widget_to_viewport(...)` - Add widgets to viewport
 
-- Make sure Unreal Engine editor is loaded loaded and running before running the server.
-- Check logs in `unreal_mcp.log` for detailed error information
+#### Project Tools
+- `create_input_mapping(...)` - Create input mappings
 
 ## Development
 
-To add new tools, modify the `UnrealMCPBridge.py` file to add new command handlers, and update the `unreal_mcp_server.py` file to expose them through the HTTP API. 
+### Code Quality
+
+```bash
+# Format code
+make format
+
+# Check formatting
+make format-check
+
+# Run linting
+make lint
+
+# Type checking
+make type-check
+
+# Security checks
+make security
+
+# Run all checks
+make pre-commit
+```
+
+### Testing
+
+```bash
+# Run unit tests
+make test
+
+# Run tests with coverage
+make test-cov
+
+# Run integration tests
+make test-integration
+
+# Run all tests
+make test-all
+```
+
+## Troubleshooting
+
+- Make sure Unreal Engine editor is loaded and running before running the server
+- Check logs in `unreal_mcp.log` for detailed error information
+- Ensure proper MCP client configuration

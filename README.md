@@ -113,25 +113,66 @@ See [Python/README.md](Python/README.md) for detailed Python setup instructions,
 
 ### Configuring your MCP Client
 
-Use the following JSON for your mcp configuration based on your MCP client.
+Add this to your MCP client configuration (e.g., Claude Desktop config):
 
 ```json
 {
   "mcpServers": {
-    "unrealMCP": {
+    "unreal-mcp": {
+      "command": "python",
+      "args": [
+        "C:/path/to/unreal-mcp/Python/server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/path/to/your/installation"
+      }
+    }
+  }
+}
+```
+
+#### Alternative: Using uv
+
+If you're using `uv`, you can configure it like this:
+
+```json
+{
+  "mcpServers": {
+    "unreal-mcp": {
       "command": "uv",
       "args": [
         "--directory",
-        "<path/to/the/folder/PYTHON>",
+        "C:/path/to/unreal-mcp/Python",
         "run",
-        "unreal_mcp_server.py"
+        "server.py"
       ]
     }
   }
 }
 ```
 
-An example is found in `mcp.json`
+#### Alternative: Using cmd on Windows
+
+Sometimes, Windows requires to use `cmd /c` instead of `python` or `uv`:
+
+```json
+{
+  "mcpServers": {
+    "unreal-mcp": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "python",
+        "C:/path/to/unreal-mcp/Python/server.py"
+      ]
+    }
+  }
+}
+```
+
+**Note**: Make sure to replace `C:/path/to/unreal-mcp/Python` with the actual path to your unreal-mcp Python directory.
+
+An example configuration file can be found in `mcp.json`
 
 ### MCP Configuration Locations
 

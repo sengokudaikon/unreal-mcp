@@ -150,7 +150,7 @@ namespace UnrealMCP
 		}
 
 		// Try to load from Engine module
-		FString EngineClassPath = FString::Printf(TEXT("/Script/Engine.%s"), *NormalizedClassName);
+		const FString EngineClassPath = FString::Printf(TEXT("/Script/Engine.%s"), *NormalizedClassName);
 		UClass* FoundClass = LoadClass<AActor>(nullptr, *EngineClassPath);
 
 		if (FoundClass)
@@ -165,7 +165,7 @@ namespace UnrealMCP
 		}
 
 		// Try to load from Game module
-		FString GameClassPath = FString::Printf(TEXT("/Script/Game.%s"), *NormalizedClassName);
+		const FString GameClassPath = FString::Printf(TEXT("/Script/Game.%s"), *NormalizedClassName);
 		FoundClass = LoadClass<AActor>(nullptr, *GameClassPath);
 
 		if (FoundClass)

@@ -26,7 +26,7 @@
 // Helper function to clean up test blueprints
 static void CleanupTestBlueprint(const FString& BlueprintName)
 {
-	FString AssetPath = FString::Printf(TEXT("/Game/Tests/%s.%s"), *BlueprintName, *BlueprintName);
+	const FString AssetPath = FString::Printf(TEXT("/Game/Tests/%s.%s"), *BlueprintName, *BlueprintName);
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -60,7 +60,7 @@ bool FBlueprintCreationActorTest::RunTest(const FString& Parameters)
 
 	if (Result.IsSuccess())
 	{
-		UBlueprint* Blueprint = Result.GetValue();
+		const UBlueprint* Blueprint = Result.GetValue();
 		TestNotNull(TEXT("Created blueprint should not be null"), Blueprint);
 
 		if (Blueprint)
@@ -80,7 +80,7 @@ bool FBlueprintCreationActorTest::RunTest(const FString& Parameters)
 				static_cast<int32>(Blueprint->Status), static_cast<int32>(BS_UpToDate));
 
 			// Verify asset actually exists in AssetRegistry
-			FString AssetPath = FString::Printf(TEXT("/Game/Tests/%s.%s"), *BlueprintName, *BlueprintName);
+			const FString AssetPath = FString::Printf(TEXT("/Game/Tests/%s.%s"), *BlueprintName, *BlueprintName);
 			TestTrue(TEXT("Blueprint asset should exist in project"),
 				UEditorAssetLibrary::DoesAssetExist(AssetPath));
 		}
@@ -116,7 +116,7 @@ bool FBlueprintCreationPawnTest::RunTest(const FString& Parameters)
 
 	if (Result.IsSuccess())
 	{
-		UBlueprint* Blueprint = Result.GetValue();
+		const UBlueprint* Blueprint = Result.GetValue();
 		TestNotNull(TEXT("Pawn blueprint should not be null"), Blueprint);
 
 		if (Blueprint && Blueprint->GeneratedClass)
@@ -163,7 +163,7 @@ bool FBlueprintCreationCharacterTest::RunTest(const FString& Parameters)
 
 	if (Result.IsSuccess())
 	{
-		UBlueprint* Blueprint = Result.GetValue();
+		const UBlueprint* Blueprint = Result.GetValue();
 
 		if (Blueprint && Blueprint->GeneratedClass)
 		{
@@ -203,11 +203,11 @@ bool FBlueprintCreationDuplicateTest::RunTest(const FString& Parameters)
 	Params.PackagePath = TEXT("/Game/Tests/");
 
 	// Create first blueprint
-	auto FirstResult = UnrealMCP::FBlueprintCreationService::CreateBlueprint(Params);
+	const auto FirstResult = UnrealMCP::FBlueprintCreationService::CreateBlueprint(Params);
 	TestTrue(TEXT("First blueprint creation should succeed"), FirstResult.IsSuccess());
 
 	// Try to create second blueprint with same name
-	auto SecondResult = UnrealMCP::FBlueprintCreationService::CreateBlueprint(Params);
+	const auto SecondResult = UnrealMCP::FBlueprintCreationService::CreateBlueprint(Params);
 
 	// Should fail (or return existing blueprint - implementation dependent)
 	TestTrue(TEXT("Duplicate creation should either fail or return existing blueprint"),
@@ -216,7 +216,7 @@ bool FBlueprintCreationDuplicateTest::RunTest(const FString& Parameters)
 	if (SecondResult.IsFailure())
 	{
 		// Verify error message mentions the issue
-		FString Error = SecondResult.GetError();
+		const FString Error = SecondResult.GetError();
 		TestTrue(TEXT("Error message should indicate duplicate/existing asset"),
 			Error.Contains(TEXT("exists")) || Error.Contains(TEXT("duplicate")) || Error.Contains(TEXT("already")));
 	}
@@ -250,11 +250,11 @@ bool FBlueprintCompilationTest::RunTest(const FString& Parameters)
 	if (CreateResult.IsSuccess())
 	{
 		// Mark blueprint as dirty to test compilation
-		UBlueprint* Blueprint = CreateResult.GetValue();
+		const UBlueprint* Blueprint = CreateResult.GetValue();
 		if (Blueprint)
 		{
 			// Compile the blueprint
-			auto CompileResult = UnrealMCP::FBlueprintCreationService::CompileBlueprint(BlueprintName);
+			const auto CompileResult = UnrealMCP::FBlueprintCreationService::CompileBlueprint(BlueprintName);
 
 			TestTrue(TEXT("Blueprint compilation should succeed"), CompileResult.IsSuccess());
 
@@ -278,15 +278,15 @@ bool FBlueprintCompileNonExistentTest::RunTest(const FString& Parameters)
 {
 	// Test: Compiling non-existent blueprint should fail with clear error
 
-	FString NonExistentName = TEXT("NonExistentBlueprint_XYZ999");
+	const FString NonExistentName = TEXT("NonExistentBlueprint_XYZ999");
 
-	auto Result = UnrealMCP::FBlueprintCreationService::CompileBlueprint(NonExistentName);
+	const auto Result = UnrealMCP::FBlueprintCreationService::CompileBlueprint(NonExistentName);
 
 	TestTrue(TEXT("Compiling non-existent blueprint should fail"), Result.IsFailure());
 
 	if (Result.IsFailure())
 	{
-		FString Error = Result.GetError();
+		const FString Error = Result.GetError();
 		TestTrue(TEXT("Error should mention blueprint not found"),
 			Error.Contains(TEXT("not found")) || Error.Contains(TEXT("does not exist")) || Error.Contains(TEXT("failed to load")));
 	}
@@ -319,7 +319,7 @@ bool FBlueprintCreationWithPrefixTest::RunTest(const FString& Parameters)
 
 	if (Result.IsSuccess())
 	{
-		UBlueprint* Blueprint = Result.GetValue();
+		const UBlueprint* Blueprint = Result.GetValue();
 		if (Blueprint && Blueprint->GeneratedClass)
 		{
 			TestTrue(TEXT("Blueprint with 'AActor' prefix should be Actor class"),

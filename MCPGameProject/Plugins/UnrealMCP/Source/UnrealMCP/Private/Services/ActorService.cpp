@@ -17,7 +17,7 @@
 namespace UnrealMCP {
 
 	auto FActorService::GetActorsInLevel(TArray<FString>& OutActorNames) -> FVoidResult {
-		UWorld* World = GetEditorWorld();
+		const UWorld* World = GetEditorWorld();
 		if (!World) {
 			return FVoidResult::Failure(TEXT("Failed to get editor world"));
 		}
@@ -25,7 +25,7 @@ namespace UnrealMCP {
 		TArray<AActor*> AllActors;
 		UGameplayStatics::GetAllActorsOfClass(World, AActor::StaticClass(), AllActors);
 
-		for (AActor* Actor : AllActors) {
+		for (const AActor* Actor : AllActors) {
 			if (Actor) {
 				OutActorNames.Add(Actor->GetName());
 			}
@@ -35,7 +35,7 @@ namespace UnrealMCP {
 	}
 
 	auto FActorService::FindActorsByName(const FString& NamePattern, TArray<FString>& OutActorNames) -> FVoidResult {
-		UWorld* World = GetEditorWorld();
+		const UWorld* World = GetEditorWorld();
 		if (!World) {
 			return FVoidResult::Failure(TEXT("Failed to get editor world"));
 		}
@@ -43,7 +43,7 @@ namespace UnrealMCP {
 		TArray<AActor*> AllActors;
 		UGameplayStatics::GetAllActorsOfClass(World, AActor::StaticClass(), AllActors);
 
-		for (AActor* Actor : AllActors) {
+		for (const AActor* Actor : AllActors) {
 			if (Actor && Actor->GetName().Contains(NamePattern)) {
 				OutActorNames.Add(Actor->GetName());
 			}
@@ -68,8 +68,8 @@ namespace UnrealMCP {
 			return TResult<AActor*>::Failure(FString::Printf(TEXT("Unknown actor class: %s"), *ActorClass));
 		}
 
-		FVector SpawnLocation = Location.Get(FVector::ZeroVector);
-		FRotator SpawnRotation = Rotation.Get(FRotator::ZeroRotator);
+		const FVector SpawnLocation = Location.Get(FVector::ZeroVector);
+		const FRotator SpawnRotation = Rotation.Get(FRotator::ZeroRotator);
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Name = FName(*ActorName);
@@ -129,12 +129,12 @@ namespace UnrealMCP {
 
 		RootComponent->Modify();
 
-		FTransform CurrentTransform = RootComponent->GetRelativeTransform();
-		FVector NewLocation = Location.IsSet() ? Location.GetValue() : CurrentTransform.GetLocation();
-		FRotator NewRotation = Rotation.IsSet() ? Rotation.GetValue() : CurrentTransform.GetRotation().Rotator();
-		FVector NewScale = Scale.IsSet() ? Scale.GetValue() : CurrentTransform.GetScale3D();
+		const FTransform CurrentTransform = RootComponent->GetRelativeTransform();
+		const FVector NewLocation = Location.IsSet() ? Location.GetValue() : CurrentTransform.GetLocation();
+		const FRotator NewRotation = Rotation.IsSet() ? Rotation.GetValue() : CurrentTransform.GetRotation().Rotator();
+		const FVector NewScale = Scale.IsSet() ? Scale.GetValue() : CurrentTransform.GetScale3D();
 
-		FTransform NewTransform(NewRotation, NewLocation, NewScale);
+		const FTransform NewTransform(NewRotation, NewLocation, NewScale);
 		RootComponent->SetRelativeTransform(NewTransform, false, nullptr, ETeleportType::ResetPhysics);
 
 		RootComponent->UpdateComponentToWorld();
@@ -144,15 +144,15 @@ namespace UnrealMCP {
 	}
 
 	auto FActorService::GetActorProperties(const FString& ActorName, TMap<FString, FString>& OutProperties) -> FVoidResult {
-		AActor* Actor = FindActorByName(ActorName);
+		const AActor* Actor = FindActorByName(ActorName);
 		if (!Actor) {
 			return FVoidResult::Failure(FString::Printf(TEXT("Actor not found: %s"), *ActorName));
 		}
 
 		// Get basic transform properties
-		FVector Location = Actor->GetActorLocation();
-		FRotator Rotation = Actor->GetActorRotation();
-		FVector Scale = Actor->GetActorScale3D();
+		const FVector Location = Actor->GetActorLocation();
+		const FRotator Rotation = Actor->GetActorRotation();
+		const FVector Scale = Actor->GetActorScale3D();
 
 		OutProperties.Add(TEXT("name"), Actor->GetName());
 		OutProperties.Add(TEXT("class"), Actor->GetClass()->GetName());
@@ -178,30 +178,30 @@ namespace UnrealMCP {
 			return FVoidResult::Failure(FString::Printf(TEXT("Property not found: %s"), *PropertyName));
 		}
 
-		if (FBoolProperty* BoolProp = CastField<FBoolProperty>(Property)) {
+		if (const FBoolProperty* BoolProp = CastField<FBoolProperty>(Property)) {
 			bool BoolValue;
 			if (!PropertyValue->TryGetBool(BoolValue)) {
 				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a boolean value"), *PropertyName));
 			}
 			BoolProp->SetPropertyValue_InContainer(Actor, BoolValue);
 		}
-		else if (FFloatProperty* FloatProp = CastField<FFloatProperty>(Property)) {
+		else if (const FFloatProperty* FloatProp = CastField<FFloatProperty>(Property)) {
 			double NumberValue;
 			if (!PropertyValue->TryGetNumber(NumberValue)) {
 				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a number value"), *PropertyName));
 			}
-			float Value = static_cast<float>(NumberValue);
+			const float Value = static_cast<float>(NumberValue);
 			FloatProp->SetPropertyValue_InContainer(Actor, Value);
 		}
-		else if (FIntProperty* IntProp = CastField<FIntProperty>(Property)) {
+		else if (const FIntProperty* IntProp = CastField<FIntProperty>(Property)) {
 			double NumberValue;
 			if (!PropertyValue->TryGetNumber(NumberValue)) {
 				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a number value"), *PropertyName));
 			}
-			int32 Value = FMath::RoundToInt(NumberValue);
+			const int32 Value = FMath::RoundToInt(NumberValue);
 			IntProp->SetPropertyValue_InContainer(Actor, Value);
 		}
-		else if (FStrProperty* StrProp = CastField<FStrProperty>(Property)) {
+		else if (const FStrProperty* StrProp = CastField<FStrProperty>(Property)) {
 			FString StringValue;
 			if (!PropertyValue->TryGetString(StringValue)) {
 				return FVoidResult::Failure(FString::Printf(TEXT("Property '%s' expects a string value"), *PropertyName));
@@ -223,7 +223,7 @@ namespace UnrealMCP {
 	}
 
 	AActor* FActorService::FindActorByName(const FString& ActorName) {
-		UWorld* World = GetEditorWorld();
+		const UWorld* World = GetEditorWorld();
 		if (!World) {
 			return nullptr;
 		}
@@ -262,7 +262,7 @@ namespace UnrealMCP {
 		UClass* Class = FindFirstObject<UClass>(*ClassName, EFindFirstObjectOptions::NativeFirst);
 		if (!Class) {
 			// Try with common prefixes
-			FString ClassWithPrefix = FString(TEXT("A")) + ClassName;
+			const FString ClassWithPrefix = FString(TEXT("A")) + ClassName;
 			Class = FindFirstObject<UClass>(*ClassWithPrefix, EFindFirstObjectOptions::NativeFirst);
 		}
 

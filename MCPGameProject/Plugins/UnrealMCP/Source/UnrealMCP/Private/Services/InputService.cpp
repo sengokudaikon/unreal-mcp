@@ -96,7 +96,7 @@ namespace UnrealMCP {
 			return FVoidResult::Failure(Error);
 		}
 
-		UInputAction* InputAction = LoadInputAction(Params.ActionPath, Error);
+		const UInputAction* InputAction = LoadInputAction(Params.ActionPath, Error);
 		if (!InputAction) {
 			return FVoidResult::Failure(Error);
 		}
@@ -106,7 +106,7 @@ namespace UnrealMCP {
 
 		UEnhancedInputLibrary::RequestRebuildControlMappingsUsingContext(MappingContext);
 
-		FString PackageName = MappingContext->GetOutermost()->GetName();
+		const FString PackageName = MappingContext->GetOutermost()->GetName();
 		if (!SavePackage(MappingContext->GetOutermost(), MappingContext, PackageName)) {
 			return FVoidResult::Failure(TEXT("Failed to save Input Mapping Context after adding mapping"));
 		}
@@ -128,7 +128,7 @@ namespace UnrealMCP {
 			return FVoidResult::Failure(Error);
 		}
 
-		UInputAction* InputAction = LoadInputAction(Params.ActionPath, Error);
+		const UInputAction* InputAction = LoadInputAction(Params.ActionPath, Error);
 		if (!InputAction) {
 			return FVoidResult::Failure(Error);
 		}
@@ -138,7 +138,7 @@ namespace UnrealMCP {
 
 		UEnhancedInputLibrary::RequestRebuildControlMappingsUsingContext(MappingContext);
 
-		FString PackageName = MappingContext->GetOutermost()->GetName();
+		const FString PackageName = MappingContext->GetOutermost()->GetName();
 		if (!SavePackage(MappingContext->GetOutermost(), MappingContext, PackageName)) {
 			return FVoidResult::Failure(TEXT("Failed to save Input Mapping Context after removing mapping"));
 		}
@@ -190,7 +190,7 @@ namespace UnrealMCP {
 			return false;
 		}
 
-		FString PackageFileName = FPackageName::LongPackageNameToFilename(
+		const FString PackageFileName = FPackageName::LongPackageNameToFilename(
 			PackagePath,
 			FPackageName::GetAssetPackageExtension()
 		);
@@ -208,7 +208,7 @@ namespace UnrealMCP {
 		}
 
 		FString Error;
-		UInputMappingContext* MappingContext = LoadInputMappingContext(Params.ContextPath, Error);
+		const UInputMappingContext* MappingContext = LoadInputMappingContext(Params.ContextPath, Error);
 		if (!MappingContext) {
 			return FVoidResult::Failure(Error);
 		}
@@ -228,7 +228,7 @@ namespace UnrealMCP {
 		}
 
 		FString Error;
-		UInputMappingContext* MappingContext = LoadInputMappingContext(Params.ContextPath, Error);
+		const UInputMappingContext* MappingContext = LoadInputMappingContext(Params.ContextPath, Error);
 		if (!MappingContext) {
 			return FVoidResult::Failure(Error);
 		}
@@ -254,13 +254,13 @@ namespace UnrealMCP {
 	}
 
 	auto FInputService::GetInputSubsystem(FString& OutError) -> UEnhancedInputLocalPlayerSubsystem* {
-		UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
+		const UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
 		if (!World) {
 			OutError = TEXT("Failed to get world");
 			return nullptr;
 		}
 
-		APlayerController* PlayerController = World->GetFirstPlayerController();
+		const APlayerController* PlayerController = World->GetFirstPlayerController();
 		if (!PlayerController) {
 			OutError = TEXT("No player controller found");
 			return nullptr;

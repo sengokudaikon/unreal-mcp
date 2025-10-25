@@ -24,7 +24,7 @@ public:
 
 protected:
 	void HandleClientConnection(TSharedPtr<FSocket> ClientSocket);
-	void ProcessMessage(TSharedPtr<FSocket> Client, const FString& Message);
+	void ProcessMessage(TSharedPtr<FSocket> Client, const FString& Message) const;
 
 private:
 	UUnrealMCPBridge* Bridge;

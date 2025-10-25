@@ -129,14 +129,14 @@ namespace UnrealMCP {
 		// Check if we have a target class specified
 		if (TargetClass.IsSet() && !TargetClass.GetValue().IsEmpty()) {
 			// Try to find the target class
-			UClass* ClassPtr = nullptr;
+			const UClass* ClassPtr = nullptr;
 
 			// First try without a prefix
 			ClassPtr = FindFirstObject<UClass>(*TargetClass.GetValue(), EFindFirstObjectOptions::NativeFirst);
 
 			// If not found, try with U prefix
 			if (!ClassPtr && !TargetClass.GetValue().StartsWith(TEXT("U"))) {
-				FString TargetWithPrefix = FString(TEXT("U")) + TargetClass.GetValue();
+				const FString TargetWithPrefix = FString(TEXT("U")) + TargetClass.GetValue();
 				ClassPtr = FindFirstObject<UClass>(*TargetWithPrefix, EFindFirstObjectOptions::NativeFirst);
 			}
 
@@ -172,7 +172,7 @@ namespace UnrealMCP {
 
 		// Set parameters if provided
 		if (Parameters.IsValid()) {
-			FVoidResult ParamResult = SetFunctionParameters(FunctionNode, EventGraph, Parameters);
+			const FVoidResult ParamResult = SetFunctionParameters(FunctionNode, EventGraph, Parameters);
 			if (ParamResult.IsFailure()) {
 				return TResult<UK2Node_CallFunction*>::Failure(ParamResult.GetError());
 			}
@@ -320,7 +320,7 @@ namespace UnrealMCP {
 			}
 
 			for (UEdGraphNode* Node : EventGraph->Nodes) {
-				UK2Node_Event* EventNode = Cast<UK2Node_Event>(Node);
+				const UK2Node_Event* EventNode = Cast<UK2Node_Event>(Node);
 				if (EventNode && EventNode->EventReference.GetMemberName() == FName(*EventName.GetValue())) {
 					OutNodeGuids.Add(EventNode->NodeGuid.ToString());
 				}
@@ -334,7 +334,7 @@ namespace UnrealMCP {
 		const FString& BlueprintName,
 		const FString& VariableName,
 		const FString& VariableType,
-		bool bIsExposed
+		const bool bIsExposed
 	) -> FVoidResult {
 		// Validate input parameters
 		if (BlueprintName.IsEmpty()) {
@@ -458,17 +458,17 @@ namespace UnrealMCP {
 			// Handle numeric parameters
 			else if (ParamValue->Type == EJson::Number) {
 				if (ParamPin->PinType.PinCategory == UEdGraphSchema_K2::PC_Int) {
-					int32 IntValue = FMath::RoundToInt(ParamValue->AsNumber());
+					const int32 IntValue = FMath::RoundToInt(ParamValue->AsNumber());
 					ParamPin->DefaultValue = FString::FromInt(IntValue);
 				}
 				else {
-					float FloatValue = ParamValue->AsNumber();
+					const float FloatValue = ParamValue->AsNumber();
 					ParamPin->DefaultValue = FString::SanitizeFloat(FloatValue);
 				}
 			}
 			// Handle boolean parameters
 			else if (ParamValue->Type == EJson::Boolean) {
-				bool BoolValue = ParamValue->AsBool();
+				const bool BoolValue = ParamValue->AsBool();
 				ParamPin->DefaultValue = BoolValue ? TEXT("true") : TEXT("false");
 			}
 			// Handle vector parameters
@@ -477,9 +477,9 @@ namespace UnrealMCP {
 				if (ParamValue->TryGetArray(ArrayValue) && ArrayValue->Num() == 3 &&
 					ParamPin->PinType.PinCategory == UEdGraphSchema_K2::PC_Struct &&
 					ParamPin->PinType.PinSubCategoryObject == TBaseStructure<FVector>::Get()) {
-					float X = (*ArrayValue)[0]->AsNumber();
-					float Y = (*ArrayValue)[1]->AsNumber();
-					float Z = (*ArrayValue)[2]->AsNumber();
+					const float X = (*ArrayValue)[0]->AsNumber();
+					const float Y = (*ArrayValue)[1]->AsNumber();
+					const float Z = (*ArrayValue)[2]->AsNumber();
 					ParamPin->DefaultValue = FString::Printf(TEXT("(X=%f,Y=%f,Z=%f)"), X, Y, Z);
 				}
 			}

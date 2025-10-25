@@ -51,7 +51,7 @@ bool FViewportServiceFocusOnActorTest::RunTest(const FString& Parameters)
 	TestActor->Rename(TEXT("ViewportTestActor"));
 
 	// Focus on the actor using the service
-	UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
 		TOptional<FString>(TEXT("ViewportTestActor")),
 		TOptional<FVector>()
 	);
@@ -60,7 +60,7 @@ bool FViewportServiceFocusOnActorTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("FocusViewport should succeed for valid actor"), Result.IsSuccess());
 
 	// Verify the actor is selected
-	USelection* Selection = GEditor->GetSelectedActors();
+	const USelection* Selection = GEditor->GetSelectedActors();
 	TestTrue(TEXT("Actor should be selected after focus"), Selection && Selection->IsSelected(TestActor));
 
 	// Cleanup
@@ -79,10 +79,10 @@ bool FViewportServiceFocusOnLocationTest::RunTest(const FString& Parameters)
 {
 	// Test: Focus viewport on a specific location
 
-	FVector TargetLocation(500.0f, 1000.0f, 250.0f);
+	const FVector TargetLocation(500.0f, 1000.0f, 250.0f);
 
 	// Focus on the location using the service
-	UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
 		TOptional<FString>(),
 		TOptional<FVector>(TargetLocation)
 	);
@@ -106,7 +106,7 @@ bool FViewportServiceFocusOnInvalidActorTest::RunTest(const FString& Parameters)
 {
 	// Test: Focus on non-existent actor should fail gracefully
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
 		TOptional<FString>(TEXT("NonExistentActor_XYZ123")),
 		TOptional<FVector>()
 	);
@@ -129,7 +129,7 @@ bool FViewportServiceFocusWithoutParametersTest::RunTest(const FString& Paramete
 {
 	// Test: Focus without actor name or location should fail
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FViewportService::FocusViewport(
 		TOptional<FString>(),
 		TOptional<FVector>()
 	);
@@ -154,10 +154,10 @@ bool FViewportServiceTakeScreenshotTest::RunTest(const FString& Parameters)
 	// Test: Take a screenshot and verify file is created
 
 	// Use temp directory for test screenshot
-	FString ScreenshotPath = FPaths::ProjectSavedDir() / TEXT("Tests") / TEXT("test_screenshot.png");
+	const FString ScreenshotPath = FPaths::ProjectSavedDir() / TEXT("Tests") / TEXT("test_screenshot.png");
 
 	// Ensure directory exists
-	FString DirectoryPath = FPaths::GetPath(ScreenshotPath);
+	const FString DirectoryPath = FPaths::GetPath(ScreenshotPath);
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	if (!PlatformFile.DirectoryExists(*DirectoryPath))
 	{
@@ -188,7 +188,7 @@ bool FViewportServiceTakeScreenshotTest::RunTest(const FString& Parameters)
 	// Verify file has content
 	if (PlatformFile.FileExists(*ScreenshotPath))
 	{
-		int64 FileSize = PlatformFile.FileSize(*ScreenshotPath);
+		const int64 FileSize = PlatformFile.FileSize(*ScreenshotPath);
 		TestTrue(TEXT("Screenshot file should have content (size > 0)"), FileSize > 0);
 
 		// PNG files start with specific header bytes
@@ -225,9 +225,9 @@ bool FViewportServiceScreenshotInvalidPathTest::RunTest(const FString& Parameter
 	// Test: Taking screenshot to invalid/unwritable path should fail gracefully
 
 	// Use an invalid path (drive that likely doesn't exist or invalid characters)
-	FString InvalidPath = TEXT("Z:/InvalidDrive/NonExistent/Path/test.png");
+	const FString InvalidPath = TEXT("Z:/InvalidDrive/NonExistent/Path/test.png");
 
-	UnrealMCP::TResult<FString> Result = UnrealMCP::FViewportService::TakeScreenshot(InvalidPath);
+	const UnrealMCP::TResult<FString> Result = UnrealMCP::FViewportService::TakeScreenshot(InvalidPath);
 
 	// Verify failure
 	TestTrue(TEXT("TakeScreenshot should fail for invalid path"), Result.IsFailure());

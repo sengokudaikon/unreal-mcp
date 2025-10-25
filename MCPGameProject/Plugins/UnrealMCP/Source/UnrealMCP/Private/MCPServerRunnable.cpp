@@ -111,7 +111,7 @@ uint32 FMCPServerRunnable::Run()
                     }
                     else
                     {
-                        int32 LastError = (int32)ISocketSubsystem::Get()->GetLastErrorCode();
+                        const int32 LastError = (int32)ISocketSubsystem::Get()->GetLastErrorCode();
                         // Don't break the connection for WouldBlock error, which is normal for non-blocking sockets
                         bool bShouldBreak = true;
                         
@@ -188,13 +188,13 @@ void FMCPServerRunnable::HandleClientConnection(TSharedPtr<FSocket> InClientSock
     while (bRunning && InClientSocket.IsValid())
     {
         // Log socket state
-        bool bIsConnected = InClientSocket->GetConnectionState() == SCS_Connected;
+        const bool bIsConnected = InClientSocket->GetConnectionState() == SCS_Connected;
         UE_LOG(LogTemp, Display, TEXT("MCPServerRunnable: Socket state - Connected: %s"), 
                bIsConnected ? TEXT("true") : TEXT("false"));
         
         // Log pending data status before receive
         uint32 PendingDataSize = 0;
-        bool HasPendingData = InClientSocket->HasPendingData(PendingDataSize);
+        const bool HasPendingData = InClientSocket->HasPendingData(PendingDataSize);
         UE_LOG(LogTemp, Display, TEXT("MCPServerRunnable: Before Recv - HasPendingData=%s, Size=%d"), 
                HasPendingData ? TEXT("true") : TEXT("false"), PendingDataSize);
         
@@ -269,13 +269,12 @@ void FMCPServerRunnable::HandleClientConnection(TSharedPtr<FSocket> InClientSock
     UE_LOG(LogTemp, Display, TEXT("MCPServerRunnable: Exited message receive loop"));
 }
 
-void FMCPServerRunnable::ProcessMessage(TSharedPtr<FSocket> Client, const FString& Message)
-{
+void FMCPServerRunnable::ProcessMessage(TSharedPtr<FSocket> Client, const FString& Message) const {
     UE_LOG(LogTemp, Display, TEXT("MCPServerRunnable: Processing message: %s"), *Message);
     
     // Parse message as JSON
     TSharedPtr<FJsonObject> JsonMessage;
-    TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Message);
+    const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Message);
     
     if (!FJsonSerializer::Deserialize(Reader, JsonMessage) || !JsonMessage.IsValid())
     {
@@ -296,7 +295,7 @@ void FMCPServerRunnable::ProcessMessage(TSharedPtr<FSocket> Client, const FStrin
     // Parameters are optional in MCP protocol
     if (JsonMessage->HasField(TEXT("params")))
     {
-        TSharedPtr<FJsonValue> ParamsValue = JsonMessage->TryGetField(TEXT("params"));
+        const TSharedPtr<FJsonValue> ParamsValue = JsonMessage->TryGetField(TEXT("params"));
         if (ParamsValue.IsValid() && ParamsValue->Type == EJson::Object)
         {
             Params = ParamsValue->AsObject();

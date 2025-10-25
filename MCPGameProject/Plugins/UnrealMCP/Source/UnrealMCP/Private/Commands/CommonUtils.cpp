@@ -203,8 +203,8 @@ UK2Node_Event* FCommonUtils::CreateEventNode(UEdGraph* Graph, const FString& Eve
     {
         return nullptr;
     }
-    
-    UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForGraph(Graph);
+
+    const UBlueprint* Blueprint = FBlueprintEditorUtils::FindBlueprintForGraph(Graph);
     if (!Blueprint)
     {
         return nullptr;
@@ -227,7 +227,7 @@ UK2Node_Event* FCommonUtils::CreateEventNode(UEdGraph* Graph, const FString& Eve
     
     // Find the function to create the event
     UClass* BlueprintClass = Blueprint->GeneratedClass;
-    UFunction* EventFunction = BlueprintClass->FindFunctionByName(FName(*EventName));
+    const UFunction* EventFunction = BlueprintClass->FindFunctionByName(FName(*EventName));
     
     if (EventFunction)
     {
@@ -276,9 +276,9 @@ UK2Node_VariableGet* FCommonUtils::CreateVariableGetNode(UEdGraph* Graph, UBluep
     }
     
     UK2Node_VariableGet* VariableGetNode = NewObject<UK2Node_VariableGet>(Graph);
-    
-    FName VarName(*VariableName);
-    FProperty* Property = FindFProperty<FProperty>(Blueprint->GeneratedClass, VarName);
+
+    const FName VarName(*VariableName);
+    const FProperty* Property = FindFProperty<FProperty>(Blueprint->GeneratedClass, VarName);
     
     if (Property)
     {
@@ -303,9 +303,9 @@ UK2Node_VariableSet* FCommonUtils::CreateVariableSetNode(UEdGraph* Graph, UBluep
     }
     
     UK2Node_VariableSet* VariableSetNode = NewObject<UK2Node_VariableSet>(Graph);
-    
-    FName VarName(*VariableName);
-    FProperty* Property = FindFProperty<FProperty>(Blueprint->GeneratedClass, VarName);
+
+    const FName VarName(*VariableName);
+    const FProperty* Property = FindFProperty<FProperty>(Blueprint->GeneratedClass, VarName);
     
     if (Property)
     {
@@ -379,7 +379,7 @@ bool FCommonUtils::ConnectGraphNodes(UEdGraph* Graph, UEdGraphNode* SourceNode, 
     return false;
 }
 
-UEdGraphPin* FCommonUtils::FindPin(UEdGraphNode* Node, const FString& PinName, EEdGraphPinDirection Direction)
+UEdGraphPin* FCommonUtils::FindPin(UEdGraphNode* Node, const FString& PinName, const EEdGraphPinDirection Direction)
 {
     if (!Node)
     {
@@ -390,7 +390,7 @@ UEdGraphPin* FCommonUtils::FindPin(UEdGraphNode* Node, const FString& PinName, E
     UE_LOG(LogTemp, Display, TEXT("FindPin: Looking for pin '%s' (Direction: %d) in node '%s'"), 
            *PinName, (int32)Direction, *Node->GetName());
     
-    for (UEdGraphPin* Pin : Node->Pins)
+    for (const UEdGraphPin* Pin : Node->Pins)
     {
         UE_LOG(LogTemp, Display, TEXT("  - Available pin: '%s', Direction: %d, Category: %s"), 
                *Pin->PinName.ToString(), (int32)Pin->Direction, *Pin->PinType.PinCategory.ToString());
@@ -552,8 +552,8 @@ bool FCommonUtils::SetObjectProperty(UObject* Object, const FString& PropertyNam
     }
     else if (Property->IsA<FIntProperty>())
     {
-        int32 IntValue = static_cast<int32>(Value->AsNumber());
-        FIntProperty* IntProperty = CastField<FIntProperty>(Property);
+        const int32 IntValue = static_cast<int32>(Value->AsNumber());
+        const FIntProperty* IntProperty = CastField<FIntProperty>(Property);
         if (IntProperty)
         {
             IntProperty->SetPropertyValue_InContainer(Object, IntValue);
@@ -572,8 +572,8 @@ bool FCommonUtils::SetObjectProperty(UObject* Object, const FString& PropertyNam
     }
     else if (Property->IsA<FByteProperty>())
     {
-        FByteProperty* ByteProp = CastField<FByteProperty>(Property);
-        UEnum* EnumDef = ByteProp ? ByteProp->GetIntPropertyEnum() : nullptr;
+        const FByteProperty* ByteProp = CastField<FByteProperty>(Property);
+        const UEnum* EnumDef = ByteProp ? ByteProp->GetIntPropertyEnum() : nullptr;
         
         // If this is a TEnumAsByte property (has associated enum)
         if (EnumDef)
@@ -581,7 +581,7 @@ bool FCommonUtils::SetObjectProperty(UObject* Object, const FString& PropertyNam
             // Handle numeric value
             if (Value->Type == EJson::Number)
             {
-                uint8 ByteValue = static_cast<uint8>(Value->AsNumber());
+                const uint8 ByteValue = static_cast<uint8>(Value->AsNumber());
                 ByteProp->SetPropertyValue(PropertyAddr, ByteValue);
                 
                 UE_LOG(LogTemp, Display, TEXT("Setting enum property %s to numeric value: %d"), 
@@ -596,7 +596,7 @@ bool FCommonUtils::SetObjectProperty(UObject* Object, const FString& PropertyNam
                 // Try to convert numeric string to number first
                 if (EnumValueName.IsNumeric())
                 {
-                    uint8 ByteValue = FCString::Atoi(*EnumValueName);
+                    const uint8 ByteValue = FCString::Atoi(*EnumValueName);
                     ByteProp->SetPropertyValue(PropertyAddr, ByteValue);
                     
                     UE_LOG(LogTemp, Display, TEXT("Setting enum property %s to numeric string value: %s -> %d"), 
@@ -643,23 +643,23 @@ bool FCommonUtils::SetObjectProperty(UObject* Object, const FString& PropertyNam
         else
         {
             // Regular byte property
-            uint8 ByteValue = static_cast<uint8>(Value->AsNumber());
+            const uint8 ByteValue = static_cast<uint8>(Value->AsNumber());
             ByteProp->SetPropertyValue(PropertyAddr, ByteValue);
             return true;
         }
     }
     else if (Property->IsA<FEnumProperty>())
     {
-        FEnumProperty* EnumProp = CastField<FEnumProperty>(Property);
-        UEnum* EnumDef = EnumProp ? EnumProp->GetEnum() : nullptr;
-        FNumericProperty* UnderlyingNumericProp = EnumProp ? EnumProp->GetUnderlyingProperty() : nullptr;
+        const FEnumProperty* EnumProp = CastField<FEnumProperty>(Property);
+        const UEnum* EnumDef = EnumProp ? EnumProp->GetEnum() : nullptr;
+        const FNumericProperty* UnderlyingNumericProp = EnumProp ? EnumProp->GetUnderlyingProperty() : nullptr;
         
         if (EnumDef && UnderlyingNumericProp)
         {
             // Handle numeric value
             if (Value->Type == EJson::Number)
             {
-                int64 EnumValue = static_cast<int64>(Value->AsNumber());
+                const int64 EnumValue = static_cast<int64>(Value->AsNumber());
                 UnderlyingNumericProp->SetIntPropertyValue(PropertyAddr, EnumValue);
                 
                 UE_LOG(LogTemp, Display, TEXT("Setting enum property %s to numeric value: %lld"), 
@@ -674,7 +674,7 @@ bool FCommonUtils::SetObjectProperty(UObject* Object, const FString& PropertyNam
                 // Try to convert numeric string to number first
                 if (EnumValueName.IsNumeric())
                 {
-                    int64 EnumValue = FCString::Atoi64(*EnumValueName);
+                    const int64 EnumValue = FCString::Atoi64(*EnumValueName);
                     UnderlyingNumericProp->SetIntPropertyValue(PropertyAddr, EnumValue);
                     
                     UE_LOG(LogTemp, Display, TEXT("Setting enum property %s to numeric string value: %s -> %lld"), 

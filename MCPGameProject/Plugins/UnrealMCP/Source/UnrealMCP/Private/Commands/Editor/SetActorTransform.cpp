@@ -45,8 +45,8 @@ auto FSetActorTransform::Handle(
 	Response->SetBoolField(TEXT("success"), true);
 
 	if (Location.IsSet()) {
-		FVector Loc = Location.GetValue();
-		TSharedPtr<FJsonObject> LocationObj = MakeShared<FJsonObject>();
+		const FVector Loc = Location.GetValue();
+		const TSharedPtr<FJsonObject> LocationObj = MakeShared<FJsonObject>();
 		LocationObj->SetNumberField(TEXT("x"), Loc.X);
 		LocationObj->SetNumberField(TEXT("y"), Loc.Y);
 		LocationObj->SetNumberField(TEXT("z"), Loc.Z);

@@ -22,7 +22,7 @@ auto FSetActorProperty::Handle(
 		return FCommonUtils::CreateErrorResponse(TEXT("Missing 'property_value' parameter"));
 	}
 
-	TSharedPtr<FJsonValue> PropertyValue = Params->Values.FindRef(TEXT("property_value"));
+	const TSharedPtr<FJsonValue> PropertyValue = Params->Values.FindRef(TEXT("property_value"));
 
 	const UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::SetActorProperty(
 		ActorName,

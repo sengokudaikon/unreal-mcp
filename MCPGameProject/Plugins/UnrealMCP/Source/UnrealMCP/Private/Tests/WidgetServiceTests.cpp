@@ -36,7 +36,7 @@ bool FWidgetServiceCreateWidgetTest::RunTest(const FString& Parameters)
 	// Test: Create a basic widget blueprint
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/TestWidget");
+	const FString AssetPath = TEXT("/Game/UI/TestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -55,7 +55,7 @@ bool FWidgetServiceCreateWidgetTest::RunTest(const FString& Parameters)
 		AddError(FString::Printf(TEXT("CreateWidget failed with error: %s"), *Result.GetError()));
 	}
 	TestTrue(TEXT("CreateWidget should succeed"), Result.IsSuccess());
-	UWidgetBlueprint* WidgetBlueprint = Result.GetValue();
+	const UWidgetBlueprint* WidgetBlueprint = Result.GetValue();
 	TestTrue(TEXT("WidgetBlueprint should not be null"), WidgetBlueprint != nullptr);
 	if (WidgetBlueprint)
 	{
@@ -86,7 +86,7 @@ bool FWidgetServiceCreateDuplicateWidgetTest::RunTest(const FString& Parameters)
 	// Test: Creating a widget with the same name should fail
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/DuplicateTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/DuplicateTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -98,11 +98,11 @@ bool FWidgetServiceCreateDuplicateWidgetTest::RunTest(const FString& Parameters)
 	Params.PackagePath = TEXT("/Game/UI");
 
 	// Create the first widget
-	UnrealMCP::TResult<UWidgetBlueprint*> FirstResult = UnrealMCP::FWidgetService::CreateWidget(Params);
+	const UnrealMCP::TResult<UWidgetBlueprint*> FirstResult = UnrealMCP::FWidgetService::CreateWidget(Params);
 	TestTrue(TEXT("First CreateWidget should succeed"), FirstResult.IsSuccess());
 
 	// Try to create a second widget with the same name
-	UnrealMCP::TResult<UWidgetBlueprint*> SecondResult = UnrealMCP::FWidgetService::CreateWidget(Params);
+	const UnrealMCP::TResult<UWidgetBlueprint*> SecondResult = UnrealMCP::FWidgetService::CreateWidget(Params);
 
 	// Verify failure
 	TestTrue(TEXT("Second CreateWidget should fail"), SecondResult.IsFailure());
@@ -129,7 +129,7 @@ bool FWidgetServiceCreateWidgetWithInvalidParentTest::RunTest(const FString& Par
 	// Test: Creating widget with invalid parent class should still work (defaults to UserWidget)
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/InvalidParentTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/InvalidParentTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -140,7 +140,7 @@ bool FWidgetServiceCreateWidgetWithInvalidParentTest::RunTest(const FString& Par
 	Params.ParentClass = TEXT("NonExistentClass_XYZ123");
 	Params.PackagePath = TEXT("/Game/UI");
 
-	UnrealMCP::TResult<UWidgetBlueprint*> Result = UnrealMCP::FWidgetService::CreateWidget(Params);
+	const UnrealMCP::TResult<UWidgetBlueprint*> Result = UnrealMCP::FWidgetService::CreateWidget(Params);
 
 	// This should actually succeed because the CreateWidget function defaults to UserWidget
 	// and doesn't validate the parent class name
@@ -166,7 +166,7 @@ bool FWidgetServiceAddTextBlockTest::RunTest(const FString& Parameters)
 	// Test: Add a text block to an existing widget
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/TextBlockTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/TextBlockTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -197,7 +197,7 @@ bool FWidgetServiceAddTextBlockTest::RunTest(const FString& Parameters)
 
 	// Verify success
 	TestTrue(TEXT("AddTextBlock should succeed"), TextResult.IsSuccess());
-	UTextBlock* TextBlock = TextResult.GetValue();
+	const UTextBlock* TextBlock = TextResult.GetValue();
 	TestTrue(TEXT("TextBlock should not be null"), TextBlock != nullptr);
 	if (TextBlock)
 	{
@@ -230,7 +230,7 @@ bool FWidgetServiceAddTextBlockToInvalidWidgetTest::RunTest(const FString& Param
 	TextParams.TextBlockName = TEXT("TestTextBlock");
 	TextParams.Text = TEXT("Hello World");
 
-	UnrealMCP::TResult<UTextBlock*> Result = UnrealMCP::FWidgetService::AddTextBlock(TextParams);
+	const UnrealMCP::TResult<UTextBlock*> Result = UnrealMCP::FWidgetService::AddTextBlock(TextParams);
 
 	// Verify failure
 	TestTrue(TEXT("AddTextBlock should fail for non-existent widget"), Result.IsFailure());
@@ -251,7 +251,7 @@ bool FWidgetServiceAddButtonTest::RunTest(const FString& Parameters)
 	// Test: Add a button to an existing widget
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/ButtonTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/ButtonTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -283,7 +283,7 @@ bool FWidgetServiceAddButtonTest::RunTest(const FString& Parameters)
 
 	// Verify success
 	TestTrue(TEXT("AddButton should succeed"), ButtonResult.IsSuccess());
-	UButton* Button = ButtonResult.GetValue();
+	const UButton* Button = ButtonResult.GetValue();
 	TestTrue(TEXT("Button should not be null"), Button != nullptr);
 	if (Button)
 	{
@@ -314,7 +314,7 @@ bool FWidgetServiceAddButtonToInvalidWidgetTest::RunTest(const FString& Paramete
 	ButtonParams.ButtonName = TEXT("TestButton");
 	ButtonParams.Text = TEXT("Click Me");
 
-	UnrealMCP::TResult<UButton*> Result = UnrealMCP::FWidgetService::AddButton(ButtonParams);
+	const UnrealMCP::TResult<UButton*> Result = UnrealMCP::FWidgetService::AddButton(ButtonParams);
 
 	// Verify failure
 	TestTrue(TEXT("AddButton should fail for non-existent widget"), Result.IsFailure());
@@ -402,7 +402,7 @@ bool FWidgetServiceBindWidgetEventInvalidWidgetTest::RunTest(const FString& Para
 	EventParams.EventName = TEXT("OnClicked");
 	EventParams.FunctionName = TEXT("OnButtonClicked");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::BindWidgetEvent(EventParams);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::BindWidgetEvent(EventParams);
 
 	// Verify failure
 	TestTrue(TEXT("BindWidgetEvent should fail for non-existent widget"), Result.IsFailure());
@@ -423,7 +423,7 @@ bool FWidgetServiceBindWidgetEventInvalidComponentTest::RunTest(const FString& P
 	// Test: Binding event to non-existent component should fail
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/InvalidComponentTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/InvalidComponentTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -434,7 +434,7 @@ bool FWidgetServiceBindWidgetEventInvalidComponentTest::RunTest(const FString& P
 	CreateParams.Name = TEXT("InvalidComponentTestWidget");
 	CreateParams.PackagePath = TEXT("/Game/UI");
 
-	UnrealMCP::TResult<UWidgetBlueprint*> CreateResult = UnrealMCP::FWidgetService::CreateWidget(CreateParams);
+	const UnrealMCP::TResult<UWidgetBlueprint*> CreateResult = UnrealMCP::FWidgetService::CreateWidget(CreateParams);
 	TestTrue(TEXT("CreateWidget should succeed"), CreateResult.IsSuccess());
 	if (!CreateResult.IsSuccess()) return false;
 
@@ -445,7 +445,7 @@ bool FWidgetServiceBindWidgetEventInvalidComponentTest::RunTest(const FString& P
 	EventParams.EventName = TEXT("OnClicked");
 	EventParams.FunctionName = TEXT("OnButtonClicked");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::BindWidgetEvent(EventParams);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::BindWidgetEvent(EventParams);
 
 	// Verify failure
 	TestTrue(TEXT("BindWidgetEvent should fail for non-existent component"), Result.IsFailure());
@@ -535,7 +535,7 @@ bool FWidgetServiceSetTextBlockBindingInvalidWidgetTest::RunTest(const FString& 
 	BindingParams.TextBlockName = TEXT("SomeTextBlock");
 	BindingParams.BindingProperty = TEXT("PlayerName");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::SetTextBlockBinding(BindingParams);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::SetTextBlockBinding(BindingParams);
 
 	// Verify failure
 	TestTrue(TEXT("SetTextBlockBinding should fail for non-existent widget"), Result.IsFailure());
@@ -556,7 +556,7 @@ bool FWidgetServiceSetTextBlockBindingInvalidTextBlockTest::RunTest(const FStrin
 	// Test: Setting binding on non-existent text block should fail
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/InvalidTextBlockTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/InvalidTextBlockTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -567,7 +567,7 @@ bool FWidgetServiceSetTextBlockBindingInvalidTextBlockTest::RunTest(const FStrin
 	CreateParams.Name = TEXT("InvalidTextBlockTestWidget");
 	CreateParams.PackagePath = TEXT("/Game/UI");
 
-	UnrealMCP::TResult<UWidgetBlueprint*> CreateResult = UnrealMCP::FWidgetService::CreateWidget(CreateParams);
+	const UnrealMCP::TResult<UWidgetBlueprint*> CreateResult = UnrealMCP::FWidgetService::CreateWidget(CreateParams);
 	TestTrue(TEXT("CreateWidget should succeed"), CreateResult.IsSuccess());
 	if (!CreateResult.IsSuccess()) return false;
 
@@ -577,7 +577,7 @@ bool FWidgetServiceSetTextBlockBindingInvalidTextBlockTest::RunTest(const FStrin
 	BindingParams.TextBlockName = TEXT("NonExistentTextBlock_XYZ123");
 	BindingParams.BindingProperty = TEXT("PlayerName");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::SetTextBlockBinding(BindingParams);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FWidgetService::SetTextBlockBinding(BindingParams);
 
 	// Verify failure
 	TestTrue(TEXT("SetTextBlockBinding should fail for non-existent text block"), Result.IsFailure());
@@ -601,7 +601,7 @@ bool FWidgetServiceGetWidgetClassTest::RunTest(const FString& Parameters)
 	// Test: Get widget class from existing widget
 
 	// Cleanup any existing widget from previous failed tests
-	FString AssetPath = TEXT("/Game/UI/GetClassTestWidget");
+	const FString AssetPath = TEXT("/Game/UI/GetClassTestWidget");
 	if (UEditorAssetLibrary::DoesAssetExist(AssetPath))
 	{
 		UEditorAssetLibrary::DeleteAsset(AssetPath);
@@ -612,7 +612,7 @@ bool FWidgetServiceGetWidgetClassTest::RunTest(const FString& Parameters)
 	CreateParams.Name = TEXT("GetClassTestWidget");
 	CreateParams.PackagePath = TEXT("/Game/UI");
 
-	UnrealMCP::TResult<UWidgetBlueprint*> CreateResult = UnrealMCP::FWidgetService::CreateWidget(CreateParams);
+	const UnrealMCP::TResult<UWidgetBlueprint*> CreateResult = UnrealMCP::FWidgetService::CreateWidget(CreateParams);
 	TestTrue(TEXT("CreateWidget should succeed"), CreateResult.IsSuccess());
 	if (!CreateResult.IsSuccess()) return false;
 
@@ -625,7 +625,7 @@ bool FWidgetServiceGetWidgetClassTest::RunTest(const FString& Parameters)
 
 	// Verify success
 	TestTrue(TEXT("GetWidgetClass should succeed"), ClassResult.IsSuccess());
-	UClass* WidgetClass = ClassResult.GetValue();
+	const UClass* WidgetClass = ClassResult.GetValue();
 	TestTrue(TEXT("WidgetClass should not be null"), WidgetClass != nullptr);
 	if (WidgetClass)
 	{
@@ -655,7 +655,7 @@ bool FWidgetServiceGetInvalidWidgetClassTest::RunTest(const FString& Parameters)
 	GetClassParams.WidgetName = TEXT("NonExistentWidget_XYZ123");
 	GetClassParams.ZOrder = 0;
 
-	UnrealMCP::TResult<UClass*> Result = UnrealMCP::FWidgetService::GetWidgetClass(GetClassParams);
+	const UnrealMCP::TResult<UClass*> Result = UnrealMCP::FWidgetService::GetWidgetClass(GetClassParams);
 
 	// Verify failure
 	TestTrue(TEXT("GetWidgetClass should fail for non-existent widget"), Result.IsFailure());

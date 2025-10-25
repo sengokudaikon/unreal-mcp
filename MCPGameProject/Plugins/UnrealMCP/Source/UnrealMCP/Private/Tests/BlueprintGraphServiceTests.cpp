@@ -38,7 +38,7 @@ bool FBlueprintGraphServiceConnectNodesInvalidBlueprintTest::RunTest(const FStri
 {
 	// Test: Connecting nodes in non-existent blueprint should fail
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::ConnectNodes(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::ConnectNodes(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("SourceNodeGuid"),
 		TEXT("TargetNodeGuid"),
@@ -64,7 +64,7 @@ bool FBlueprintGraphServiceConnectNodesInvalidGuidsTest::RunTest(const FString& 
 {
 	// Test: Connecting nodes with invalid GUIDs should fail
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::ConnectNodes(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::ConnectNodes(
 		TEXT("SomeBlueprint"),  // This will fail before GUID validation
 		TEXT("InvalidSourceNodeGuid_XYZ123"),
 		TEXT("InvalidTargetNodeGuid_XYZ123"),
@@ -89,7 +89,7 @@ bool FBlueprintGraphServiceAddEventNodeInvalidBlueprintTest::RunTest(const FStri
 {
 	// Test: Adding event node to non-existent blueprint should fail
 
-	UnrealMCP::TResult<UK2Node_Event*> Result = UnrealMCP::FBlueprintGraphService::AddEventNode(
+	const UnrealMCP::TResult<UK2Node_Event*> Result = UnrealMCP::FBlueprintGraphService::AddEventNode(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("ReceiveBeginPlay"),
 		FVector2D(0.0f, 0.0f)
@@ -113,7 +113,7 @@ bool FBlueprintGraphServiceAddEventNodeInvalidEventTest::RunTest(const FString& 
 {
 	// Test: Adding event node with invalid event name should fail
 
-	UnrealMCP::TResult<UK2Node_Event*> Result = UnrealMCP::FBlueprintGraphService::AddEventNode(
+	const UnrealMCP::TResult<UK2Node_Event*> Result = UnrealMCP::FBlueprintGraphService::AddEventNode(
 		TEXT("SomeBlueprint"),  // This will fail before event validation
 		TEXT("NonExistentEvent_XYZ123"),
 		FVector2D(0.0f, 0.0f)
@@ -136,9 +136,9 @@ bool FBlueprintGraphServiceAddFunctionCallNodeInvalidBlueprintTest::RunTest(cons
 {
 	// Test: Adding function call node to non-existent blueprint should fail
 
-	TSharedPtr<FJsonObject> FunctionParams = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> FunctionParams = MakeShareable(new FJsonObject);
 
-	UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
+	const UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("PrintString"),
 		TOptional<FString>(),
@@ -164,9 +164,9 @@ bool FBlueprintGraphServiceAddFunctionCallNodeInvalidFunctionTest::RunTest(const
 {
 	// Test: Adding function call node with invalid function name should fail
 
-	TSharedPtr<FJsonObject> FunctionParams = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> FunctionParams = MakeShareable(new FJsonObject);
 
-	UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
+	const UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
 		TEXT("SomeBlueprint"),  // This will fail before function validation
 		TEXT("NonExistentFunction_XYZ123"),
 		TOptional<FString>(),
@@ -191,7 +191,7 @@ bool FBlueprintGraphServiceAddFunctionCallNodeWithParametersTest::RunTest(const 
 {
 	// Test: Adding function call node with JSON parameters
 
-	TSharedPtr<FJsonObject> FunctionParams = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> FunctionParams = MakeShareable(new FJsonObject);
 	FunctionParams->SetStringField(TEXT("InString"), TEXT("Hello World"));
 	// SetLinearColorField doesn't exist on FJsonObject, so we'll set it as a string array
 	TArray<TSharedPtr<FJsonValue>> ColorArray;
@@ -201,7 +201,7 @@ bool FBlueprintGraphServiceAddFunctionCallNodeWithParametersTest::RunTest(const 
 	ColorArray.Add(MakeShareable(new FJsonValueNumber(FLinearColor::Red.A)));
 	FunctionParams->SetArrayField(TEXT("TextColor"), ColorArray);
 
-	UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
+	const UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
 		TEXT("SomeBlueprint"),  // This will fail before parameter validation
 		TEXT("PrintString"),
 		TOptional<FString>(),
@@ -226,7 +226,7 @@ bool FBlueprintGraphServiceAddComponentReferenceNodeInvalidBlueprintTest::RunTes
 {
 	// Test: Adding component reference node to non-existent blueprint should fail
 
-	UnrealMCP::TResult<UK2Node_VariableGet*> Result = UnrealMCP::FBlueprintGraphService::AddComponentReferenceNode(
+	const UnrealMCP::TResult<UK2Node_VariableGet*> Result = UnrealMCP::FBlueprintGraphService::AddComponentReferenceNode(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("TestComponent"),
 		FVector2D(50.0f, 50.0f)
@@ -250,7 +250,7 @@ bool FBlueprintGraphServiceAddSelfReferenceNodeInvalidBlueprintTest::RunTest(con
 {
 	// Test: Adding self reference node to non-existent blueprint should fail
 
-	UnrealMCP::TResult<UK2Node_Self*> Result = UnrealMCP::FBlueprintGraphService::AddSelfReferenceNode(
+	const UnrealMCP::TResult<UK2Node_Self*> Result = UnrealMCP::FBlueprintGraphService::AddSelfReferenceNode(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		FVector2D(25.0f, 25.0f)
 	);
@@ -273,7 +273,7 @@ bool FBlueprintGraphServiceAddInputActionNodeInvalidBlueprintTest::RunTest(const
 {
 	// Test: Adding input action node to non-existent blueprint should fail
 
-	UnrealMCP::TResult<UK2Node_InputAction*> Result = UnrealMCP::FBlueprintGraphService::AddInputActionNode(
+	const UnrealMCP::TResult<UK2Node_InputAction*> Result = UnrealMCP::FBlueprintGraphService::AddInputActionNode(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("JumpAction"),
 		FVector2D(75.0f, 75.0f)
@@ -298,7 +298,7 @@ bool FBlueprintGraphServiceFindNodesInvalidBlueprintTest::RunTest(const FString&
 	// Test: Finding nodes in non-existent blueprint should fail
 
 	TArray<FString> OutNodeGuids;
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("Event"),
 		TOptional<FString>(TEXT("ReceiveBeginPlay")),
@@ -328,7 +328,7 @@ bool FBlueprintGraphServiceFindNodesWithDifferentTypesTest::RunTest(const FStrin
 
 	// Test with Event type
 	{
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
 			TEXT("SomeBlueprint"),  // This will fail but tests the type parameter
 			TEXT("Event"),
 			TOptional<FString>(TEXT("ReceiveBeginPlay")),
@@ -341,7 +341,7 @@ bool FBlueprintGraphServiceFindNodesWithDifferentTypesTest::RunTest(const FStrin
 	// Test with Function type
 	{
 		OutNodeGuids.Empty();
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
 			TEXT("SomeBlueprint"),  // This will fail but tests the type parameter
 			TEXT("Function"),
 			TOptional<FString>(),
@@ -354,7 +354,7 @@ bool FBlueprintGraphServiceFindNodesWithDifferentTypesTest::RunTest(const FStrin
 	// Test with Variable type
 	{
 		OutNodeGuids.Empty();
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::FindNodes(
 			TEXT("SomeBlueprint"),  // This will fail but tests the type parameter
 			TEXT("Variable"),
 			TOptional<FString>(),
@@ -377,7 +377,7 @@ bool FBlueprintGraphServiceAddVariableInvalidBlueprintTest::RunTest(const FStrin
 {
 	// Test: Adding variable to non-existent blueprint should fail
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("TestVariable"),
 		TEXT("Boolean"),
@@ -434,7 +434,7 @@ bool FBlueprintGraphServiceAddVariableWithEmptyNamesTest::RunTest(const FString&
 
 	// Test with empty blueprint name
 	{
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
 			TEXT(""),  // Empty blueprint name
 			TEXT("TestVariable"),
 			TEXT("Boolean"),
@@ -446,7 +446,7 @@ bool FBlueprintGraphServiceAddVariableWithEmptyNamesTest::RunTest(const FString&
 
 	// Test with empty variable name
 	{
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
 			TEXT("SomeBlueprint"),
 			TEXT(""),  // Empty variable name
 			TEXT("Boolean"),
@@ -458,7 +458,7 @@ bool FBlueprintGraphServiceAddVariableWithEmptyNamesTest::RunTest(const FString&
 
 	// Test with empty variable type
 	{
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintGraphService::AddVariable(
 			TEXT("SomeBlueprint"),
 			TEXT("TestVariable"),
 			TEXT(""),  // Empty variable type
@@ -483,7 +483,7 @@ bool FBlueprintGraphServiceNodeParameterValidationTest::RunTest(const FString& P
 
 	// Test AddEventNode with empty event name
 	{
-		UnrealMCP::TResult<UK2Node_Event*> Result = UnrealMCP::FBlueprintGraphService::AddEventNode(
+		const UnrealMCP::TResult<UK2Node_Event*> Result = UnrealMCP::FBlueprintGraphService::AddEventNode(
 			TEXT("SomeBlueprint"),
 			TEXT(""),  // Empty event name
 			FVector2D(0.0f, 0.0f)
@@ -494,8 +494,8 @@ bool FBlueprintGraphServiceNodeParameterValidationTest::RunTest(const FString& P
 
 	// Test AddFunctionCallNode with empty function name
 	{
-		TSharedPtr<FJsonObject> JsonParameters = MakeShareable(new FJsonObject);
-		UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
+		const TSharedPtr<FJsonObject> JsonParameters = MakeShareable(new FJsonObject);
+		const UnrealMCP::TResult<UK2Node_CallFunction*> Result = UnrealMCP::FBlueprintGraphService::AddFunctionCallNode(
 			TEXT("SomeBlueprint"),
 			TEXT(""),  // Empty function name
 			TOptional<FString>(),
@@ -508,7 +508,7 @@ bool FBlueprintGraphServiceNodeParameterValidationTest::RunTest(const FString& P
 
 	// Test AddComponentReferenceNode with empty component name
 	{
-		UnrealMCP::TResult<UK2Node_VariableGet*> Result = UnrealMCP::FBlueprintGraphService::AddComponentReferenceNode(
+		const UnrealMCP::TResult<UK2Node_VariableGet*> Result = UnrealMCP::FBlueprintGraphService::AddComponentReferenceNode(
 			TEXT("SomeBlueprint"),
 			TEXT(""),  // Empty component name
 			FVector2D(50.0f, 50.0f)
@@ -519,7 +519,7 @@ bool FBlueprintGraphServiceNodeParameterValidationTest::RunTest(const FString& P
 
 	// Test AddInputActionNode with empty action name
 	{
-		UnrealMCP::TResult<UK2Node_InputAction*> Result = UnrealMCP::FBlueprintGraphService::AddInputActionNode(
+		const UnrealMCP::TResult<UK2Node_InputAction*> Result = UnrealMCP::FBlueprintGraphService::AddInputActionNode(
 			TEXT("SomeBlueprint"),
 			TEXT(""),  // Empty action name
 			FVector2D(75.0f, 75.0f)

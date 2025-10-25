@@ -13,6 +13,7 @@
 #include "Commands/UnrealMCPBlueprintNodeCommands.h"
 #include "Commands/UnrealMCPInputCommands.h"
 #include "Commands/UnrealMCPWidgetCommands.h"
+#include "Commands/UnrealMCPRegistryCommands.h"
 #include "UnrealMCPBridge.generated.h"
 
 class FMCPServerRunnable;
@@ -61,4 +62,10 @@ private:
 	TSharedPtr<FUnrealMCPBlueprintNodeCommands> BlueprintNodeCommands;
 	TSharedPtr<FUnrealMCPInputCommands> InputCommands;
 	TSharedPtr<FUnrealMCPWidgetCommands> UMGCommands;
+	TSharedPtr<FUnrealMCPRegistryCommands> RegistryCommands;
+
+	// Command routing map for O(1) lookups
+	enum class ECommandHandlerType { Editor, Blueprint, BlueprintNode, Input, Widget, Registry, Ping };
+	TMap<FString, ECommandHandlerType> CommandRoutingMap;
+	void InitializeCommandRouting();
 }; 

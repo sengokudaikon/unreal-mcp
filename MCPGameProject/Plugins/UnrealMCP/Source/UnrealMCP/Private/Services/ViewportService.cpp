@@ -20,7 +20,7 @@ namespace UnrealMCP {
 
 		// If actor name is provided, focus on that actor
 		if (ActorName.IsSet()) {
-			UWorld* World = GEditor->GetEditorWorldContext().World();
+			const UWorld* World = GEditor->GetEditorWorldContext().World();
 			if (!World) {
 				return FVoidResult::Failure(TEXT("Failed to get editor world"));
 			}
@@ -74,7 +74,7 @@ namespace UnrealMCP {
 		}
 
 		TArray<FColor> Bitmap;
-		FIntRect ViewportRect(0, 0, Viewport->GetSizeXY().X, Viewport->GetSizeXY().Y);
+		const FIntRect ViewportRect(0, 0, Viewport->GetSizeXY().X, Viewport->GetSizeXY().Y);
 
 		if (Viewport->ReadPixels(Bitmap, FReadSurfaceDataFlags(), ViewportRect)) {
 			TArray64<uint8> CompressedBitmap;

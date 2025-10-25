@@ -54,12 +54,12 @@ bool FInputServiceCreateInputActionTest::RunTest(const FString& Parameters)
 	// Cleanup - delete the created asset
 	if (InputAction)
 	{
-		UPackage* Package = InputAction->GetOutermost();
+		const UPackage* Package = InputAction->GetOutermost();
 		if (Package)
 		{
 			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-			FString PackagePath = Package->GetPathName();
-			FString FilePath = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
+			const FString PackagePath = Package->GetPathName();
+			const FString FilePath = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
 
 			// Try to delete the file
 			PlatformFile.DeleteFile(*FilePath);
@@ -84,7 +84,7 @@ bool FInputServiceCreateInvalidInputActionTest::RunTest(const FString& Parameter
 	Params.ValueType = TEXT("Boolean");
 	Params.Path = TEXT("/Game/Input");
 
-	UnrealMCP::TResult<UInputAction*> Result = UnrealMCP::FInputService::CreateInputAction(Params);
+	const UnrealMCP::TResult<UInputAction*> Result = UnrealMCP::FInputService::CreateInputAction(Params);
 
 	// Verify failure
 	TestTrue(TEXT("CreateInputAction should fail with empty name"), Result.IsFailure());
@@ -112,7 +112,7 @@ bool FInputServiceCreateInputMappingContextTest::RunTest(const FString& Paramete
 
 	// Verify success
 	TestTrue(TEXT("CreateInputMappingContext should succeed"), Result.IsSuccess());
-	UInputMappingContext* MappingContext = Result.GetValue();
+	const UInputMappingContext* MappingContext = Result.GetValue();
 	TestTrue(TEXT("MappingContext should not be null"), MappingContext != nullptr);
 	if (MappingContext)
 	{
@@ -122,12 +122,12 @@ bool FInputServiceCreateInputMappingContextTest::RunTest(const FString& Paramete
 	// Cleanup - delete the created asset
 	if (MappingContext)
 	{
-		UPackage* Package = MappingContext->GetOutermost();
+		const UPackage* Package = MappingContext->GetOutermost();
 		if (Package)
 		{
 			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-			FString PackagePath = Package->GetPathName();
-			FString FilePath = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
+			const FString PackagePath = Package->GetPathName();
+			const FString FilePath = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
 
 			// Try to delete the file
 			PlatformFile.DeleteFile(*FilePath);
@@ -151,7 +151,7 @@ bool FInputServiceCreateInvalidMappingContextTest::RunTest(const FString& Parame
 	Params.Name = TEXT("");  // Empty name
 	Params.Path = TEXT("/Game/Input");
 
-	UnrealMCP::TResult<UInputMappingContext*> Result = UnrealMCP::FInputService::CreateInputMappingContext(Params);
+	const UnrealMCP::TResult<UInputMappingContext*> Result = UnrealMCP::FInputService::CreateInputMappingContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("CreateInputMappingContext should fail with empty name"), Result.IsFailure());
@@ -176,7 +176,7 @@ bool FInputServiceAddMappingToInvalidContextTest::RunTest(const FString& Paramet
 	Params.ActionPath = TEXT("/Game/Input/NonExistentAction_XYZ123");
 	Params.Key = TEXT("Space");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::AddMappingToContext(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::AddMappingToContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("AddMappingToContext should fail for non-existent context"), Result.IsFailure());
@@ -201,7 +201,7 @@ bool FInputServiceAddMappingWithEmptyParametersTest::RunTest(const FString& Para
 	Params.ActionPath = TEXT("/Game/Input/TestAction");
 	Params.Key = TEXT("Space");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::AddMappingToContext(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::AddMappingToContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("AddMappingToContext should fail with empty context path"), Result.IsFailure());
@@ -226,7 +226,7 @@ bool FInputServiceRemoveMappingFromInvalidContextTest::RunTest(const FString& Pa
 	Params.ActionPath = TEXT("/Game/Input/NonExistentAction_XYZ123");
 	Params.Key = TEXT("Space");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::RemoveMappingFromContext(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::RemoveMappingFromContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("RemoveMappingFromContext should fail for non-existent context"), Result.IsFailure());
@@ -250,7 +250,7 @@ bool FInputServiceApplyInvalidMappingContextTest::RunTest(const FString& Paramet
 	Params.ContextPath = TEXT("/Game/Input/NonExistentContext_XYZ123");
 	Params.Priority = 1;
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::ApplyMappingContext(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::ApplyMappingContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("ApplyMappingContext should fail for non-existent context"), Result.IsFailure());
@@ -274,7 +274,7 @@ bool FInputServiceApplyMappingContextWithEmptyPathTest::RunTest(const FString& P
 	Params.ContextPath = TEXT("");  // Empty path
 	Params.Priority = 1;
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::ApplyMappingContext(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::ApplyMappingContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("ApplyMappingContext should fail with empty path"), Result.IsFailure());
@@ -297,7 +297,7 @@ bool FInputServiceRemoveInvalidMappingContextTest::RunTest(const FString& Parame
 	UnrealMCP::FRemoveMappingContextParams Params;
 	Params.ContextPath = TEXT("/Game/Input/NonExistentContext_XYZ123");
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::RemoveMappingContext(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::RemoveMappingContext(Params);
 
 	// Verify failure
 	TestTrue(TEXT("RemoveMappingContext should fail for non-existent context"), Result.IsFailure());
@@ -317,7 +317,7 @@ bool FInputServiceClearAllMappingContextsTest::RunTest(const FString& Parameters
 {
 	// Test: Clear all mapping contexts (should succeed even if no contexts exist)
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::ClearAllMappingContexts();
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::ClearAllMappingContexts();
 
 	// This might fail if we're not in play mode with a player controller,
 	// but let's check the result appropriately
@@ -356,7 +356,7 @@ bool FInputServiceCreateLegacyInputMappingTest::RunTest(const FString& Parameter
 	Params.bAlt = false;
 	Params.bCmd = false;
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::CreateLegacyInputMapping(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::CreateLegacyInputMapping(Params);
 
 	// Verify success
 	TestTrue(TEXT("CreateLegacyInputMapping should succeed"), Result.IsSuccess());
@@ -385,7 +385,7 @@ bool FInputServiceCreateLegacyInputMappingWithEmptyNameTest::RunTest(const FStri
 	Params.bAlt = false;
 	Params.bCmd = false;
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::CreateLegacyInputMapping(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::CreateLegacyInputMapping(Params);
 
 	// Verify failure
 	TestTrue(TEXT("CreateLegacyInputMapping should fail with empty action name"), Result.IsFailure());
@@ -413,7 +413,7 @@ bool FInputServiceCreateLegacyInputMappingWithEmptyKeyTest::RunTest(const FStrin
 	Params.bAlt = false;
 	Params.bCmd = false;
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::CreateLegacyInputMapping(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FInputService::CreateLegacyInputMapping(Params);
 
 	// Verify failure
 	TestTrue(TEXT("CreateLegacyInputMapping should fail with empty key"), Result.IsFailure());
@@ -463,7 +463,7 @@ bool FInputServiceCreateInputActionWithDifferentValueTypesTest::RunTest(const FS
 		// Cleanup
 		if (InputAction)
 		{
-			UPackage* Package = InputAction->GetOutermost();
+			const UPackage* Package = InputAction->GetOutermost();
 			if (Package)
 			{
 				IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();

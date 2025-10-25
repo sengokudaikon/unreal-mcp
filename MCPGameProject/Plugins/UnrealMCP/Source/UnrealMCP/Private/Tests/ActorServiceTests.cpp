@@ -36,12 +36,12 @@ bool FActorServiceGetActorsInLevelTest::RunTest(const FString& Parameters)
 {
 	// Test: Get all actors in the current level
 
-	UWorld* World = GEditor->GetEditorWorldContext().World();
+	const UWorld* World = GEditor->GetEditorWorldContext().World();
 	TestNotNull(TEXT("Editor world should be available"), World);
 	if (!World) return false;
 
 	TArray<FString> ActorNames;
-	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::GetActorsInLevel(ActorNames);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::GetActorsInLevel(ActorNames);
 
 	// Verify success
 	TestTrue(TEXT("GetActorsInLevel should succeed"), Result.IsSuccess());
@@ -90,7 +90,7 @@ bool FActorServiceFindActorsByNameTest::RunTest(const FString& Parameters)
 
 	// Find actors with partial match
 	TArray<FString> FoundActors;
-	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::FindActorsByName(TEXT("FindTest"), FoundActors);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::FindActorsByName(TEXT("FindTest"), FoundActors);
 
 	// Verify success
 	TestTrue(TEXT("FindActorsByName should succeed"), Result.IsSuccess());
@@ -118,8 +118,8 @@ bool FActorServiceSpawnActorTest::RunTest(const FString& Parameters)
 	if (!World) return false;
 
 	// Test spawning a PointLight
-	FVector SpawnLocation(100.0f, 200.0f, 300.0f);
-	FRotator SpawnRotation(0.0f, 45.0f, 0.0f);
+	const FVector SpawnLocation(100.0f, 200.0f, 300.0f);
+	const FRotator SpawnRotation(0.0f, 45.0f, 0.0f);
 
 	UnrealMCP::TResult<AActor*> Result = UnrealMCP::FActorService::SpawnActor(
 		TEXT("PointLight"),
@@ -156,7 +156,7 @@ bool FActorServiceSpawnInvalidActorTest::RunTest(const FString& Parameters)
 {
 	// Test: Spawning an invalid actor class should fail
 
-	UnrealMCP::TResult<AActor*> Result = UnrealMCP::FActorService::SpawnActor(
+	const UnrealMCP::TResult<AActor*> Result = UnrealMCP::FActorService::SpawnActor(
 		TEXT("NonExistentActorClass_XYZ123"),
 		TEXT("InvalidActor"),
 		TOptional<FVector>(),
@@ -188,7 +188,7 @@ bool FActorServiceDeleteActorTest::RunTest(const FString& Parameters)
 	// Spawn a test actor
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Name = FName(TEXT("DeleteTestActor"));
-	AActor* TestActor = World->SpawnActor<AActor>(
+	const AActor* TestActor = World->SpawnActor<AActor>(
 		AActor::StaticClass(),
 		FVector(100.0f, 200.0f, 300.0f),
 		FRotator::ZeroRotator,
@@ -201,7 +201,7 @@ bool FActorServiceDeleteActorTest::RunTest(const FString& Parameters)
 	TArray<AActor*> AllActors;
 	UGameplayStatics::GetAllActorsOfClass(World, AActor::StaticClass(), AllActors);
 	bool bActorFound = false;
-	for (AActor* Actor : AllActors)
+	for (const AActor* Actor : AllActors)
 	{
 		if (Actor && Actor->GetName() == TEXT("DeleteTestActor"))
 		{
@@ -212,7 +212,7 @@ bool FActorServiceDeleteActorTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Actor should exist before deletion"), bActorFound);
 
 	// Delete the actor
-	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::DeleteActor(TEXT("DeleteTestActor"));
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::DeleteActor(TEXT("DeleteTestActor"));
 
 	// Verify success
 	TestTrue(TEXT("DeleteActor should succeed"), Result.IsSuccess());
@@ -221,7 +221,7 @@ bool FActorServiceDeleteActorTest::RunTest(const FString& Parameters)
 	TArray<AActor*> AllActorsAfter;
 	UGameplayStatics::GetAllActorsOfClass(World, AActor::StaticClass(), AllActorsAfter);
 	bool bActorFoundAfter = false;
-	for (AActor* Actor : AllActorsAfter)
+	for (const AActor* Actor : AllActorsAfter)
 	{
 		if (Actor && Actor->GetName() == TEXT("DeleteTestActor"))
 		{
@@ -244,7 +244,7 @@ bool FActorServiceDeleteInvalidActorTest::RunTest(const FString& Parameters)
 {
 	// Test: Deleting a non-existent actor should fail gracefully
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::DeleteActor(TEXT("NonExistentActor_XYZ123"));
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::DeleteActor(TEXT("NonExistentActor_XYZ123"));
 
 	// Verify failure
 	TestTrue(TEXT("DeleteActor should fail for non-existent actor"), Result.IsFailure());
@@ -289,7 +289,7 @@ bool FActorServiceSetActorTransformTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Initial scale should be one"), TestActor->GetActorScale3D(), FVector::OneVector);
 
 	// Set new location
-	FVector NewLocation(500.0f, 1000.0f, 250.0f);
+	const FVector NewLocation(500.0f, 1000.0f, 250.0f);
 	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::SetActorTransform(
 		TEXT("TransformTestActor"),
 		TOptional<FVector>(NewLocation),
@@ -304,7 +304,7 @@ bool FActorServiceSetActorTransformTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Scale should remain unchanged"), TestActor->GetActorScale3D(), FVector::OneVector);
 
 	// Set new rotation
-	FRotator NewRotation(30.0f, 60.0f, 90.0f);
+	const FRotator NewRotation(30.0f, 60.0f, 90.0f);
 	Result = UnrealMCP::FActorService::SetActorTransform(
 		TEXT("TransformTestActor"),
 		TOptional<FVector>(),
@@ -319,7 +319,7 @@ bool FActorServiceSetActorTransformTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Scale should remain unchanged"), TestActor->GetActorScale3D(), FVector::OneVector);
 
 	// Set new scale
-	FVector NewScale(2.0f, 3.0f, 4.0f);
+	const FVector NewScale(2.0f, 3.0f, 4.0f);
 	Result = UnrealMCP::FActorService::SetActorTransform(
 		TEXT("TransformTestActor"),
 		TOptional<FVector>(),
@@ -438,10 +438,10 @@ bool FActorServiceSetActorPropertyTest::RunTest(const FString& Parameters)
 
 	// Test setting float property - use InitialLifeSpan which exists on all actors
 	// Note: InitialLifeSpan is a public property, not a method in UE
-	float InitialLifeSpan = TestActor->InitialLifeSpan;
+	const float InitialLifeSpan = TestActor->InitialLifeSpan;
 	UE_LOG(LogTemp, Warning, TEXT("Initial InitialLifeSpan value: %f"), InitialLifeSpan);
 
-	TSharedPtr<FJsonValue> FloatValue = MakeShareable(new FJsonValueNumber(5.0f));
+	const TSharedPtr<FJsonValue> FloatValue = MakeShareable(new FJsonValueNumber(5.0f));
 	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::SetActorProperty(
 		TEXT("SetPropertyTestActor"),
 		TEXT("InitialLifeSpan"),
@@ -452,7 +452,7 @@ bool FActorServiceSetActorPropertyTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("InitialLifeSpan should be set to 5.0"), TestActor->InitialLifeSpan, 5.0f);
 
 	// Set it back to original value to verify we can change it
-	TSharedPtr<FJsonValue> FloatValueZero = MakeShareable(new FJsonValueNumber(0.0f));
+	const TSharedPtr<FJsonValue> FloatValueZero = MakeShareable(new FJsonValueNumber(0.0f));
 	Result = UnrealMCP::FActorService::SetActorProperty(
 		TEXT("SetPropertyTestActor"),
 		TEXT("InitialLifeSpan"),
@@ -464,10 +464,10 @@ bool FActorServiceSetActorPropertyTest::RunTest(const FString& Parameters)
 
 	// Test setting boolean property using SetActorParameter instead of private bHidden
 	// We'll test a different boolean property that is accessible - let's try bCanBeDamaged
-	bool bCanBeDamaged = TestActor->CanBeDamaged();
+	const bool bCanBeDamaged = TestActor->CanBeDamaged();
 	UE_LOG(LogTemp, Warning, TEXT("Initial bCanBeDamaged value: %s"), bCanBeDamaged ? TEXT("true") : TEXT("false"));
 
-	TSharedPtr<FJsonValue> BoolValue = MakeShareable(new FJsonValueBoolean(false));
+	const TSharedPtr<FJsonValue> BoolValue = MakeShareable(new FJsonValueBoolean(false));
 	Result = UnrealMCP::FActorService::SetActorProperty(
 		TEXT("SetPropertyTestActor"),
 		TEXT("bCanBeDamaged"),
@@ -486,10 +486,10 @@ bool FActorServiceSetActorPropertyTest::RunTest(const FString& Parameters)
 	}
 
 	// Test setting float property - use CustomTimeDilation which exists on all actors
-	float InitialTimeDilation = TestActor->CustomTimeDilation;
+	const float InitialTimeDilation = TestActor->CustomTimeDilation;
 	UE_LOG(LogTemp, Warning, TEXT("Initial CustomTimeDilation value: %f"), InitialTimeDilation);
 
-	TSharedPtr<FJsonValue> TimeDilationValue = MakeShareable(new FJsonValueNumber(0.5f));
+	const TSharedPtr<FJsonValue> TimeDilationValue = MakeShareable(new FJsonValueNumber(0.5f));
 	Result = UnrealMCP::FActorService::SetActorProperty(
 		TEXT("SetPropertyTestActor"),
 		TEXT("CustomTimeDilation"),
@@ -502,7 +502,7 @@ bool FActorServiceSetActorPropertyTest::RunTest(const FString& Parameters)
 	}
 
 	// Test setting non-existent property fails properly
-	TSharedPtr<FJsonValue> InvalidValue = MakeShareable(new FJsonValueBoolean(true));
+	const TSharedPtr<FJsonValue> InvalidValue = MakeShareable(new FJsonValueBoolean(true));
 	Result = UnrealMCP::FActorService::SetActorProperty(
 		TEXT("SetPropertyTestActor"),
 		TEXT("NonExistentProperty"),
@@ -514,7 +514,7 @@ bool FActorServiceSetActorPropertyTest::RunTest(const FString& Parameters)
 		Result.GetError().Contains(TEXT("Property not found")));
 
 	// Test setting wrong type for existing property
-	TSharedPtr<FJsonValue> WrongTypeValue = MakeShareable(new FJsonValueString(TEXT("not a number")));
+	const TSharedPtr<FJsonValue> WrongTypeValue = MakeShareable(new FJsonValueString(TEXT("not a number")));
 	Result = UnrealMCP::FActorService::SetActorProperty(
 		TEXT("SetPropertyTestActor"),
 		TEXT("InitialLifeSpan"),
@@ -540,8 +540,8 @@ bool FActorServiceSetActorTransformInvalidActorTest::RunTest(const FString& Para
 {
 	// Test: Setting transform on non-existent actor should fail
 
-	FVector NewLocation(100.0f, 200.0f, 300.0f);
-	UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::SetActorTransform(
+	const FVector NewLocation(100.0f, 200.0f, 300.0f);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FActorService::SetActorTransform(
 		TEXT("NonExistentActor_XYZ123"),
 		TOptional<FVector>(NewLocation),
 		TOptional<FRotator>(),

@@ -57,6 +57,8 @@
 #include "Commands/CommonUtils.h"
 #include "Commands/UnrealMCPInputCommands.h"
 #include "Commands/UnrealMCPWidgetCommands.h"
+#include "Commands/UnrealMCPRegistryCommands.h"
+#include "Core/MCPRegistry.h"
 
 // Default settings
 #define MCP_SERVER_HOST "127.0.0.1"
@@ -69,6 +71,8 @@ UUnrealMCPBridge::UUnrealMCPBridge()
     BlueprintNodeCommands = MakeShared<FUnrealMCPBlueprintNodeCommands>();
     InputCommands = MakeShared<FUnrealMCPInputCommands>();
     UMGCommands = MakeShared<FUnrealMCPWidgetCommands>();
+    RegistryCommands = MakeShared<FUnrealMCPRegistryCommands>();
+    InitializeCommandRouting();
 }
 
 UUnrealMCPBridge::~UUnrealMCPBridge()
@@ -78,13 +82,17 @@ UUnrealMCPBridge::~UUnrealMCPBridge()
     BlueprintNodeCommands.Reset();
     InputCommands.Reset();
     UMGCommands.Reset();
+    RegistryCommands.Reset();
 }
 
 // Initialize subsystem
 void UUnrealMCPBridge::Initialize(FSubsystemCollectionBase& Collection)
 {
     UE_LOG(LogTemp, Display, TEXT("UnrealMCPBridge: Initializing"));
-    
+
+    // Initialize the MCP Registry
+    UnrealMCP::FMCPRegistry::Initialize();
+
     bIsRunning = false;
     ListenerSocket = nullptr;
     ConnectionSocket = nullptr;
@@ -121,7 +129,7 @@ void UUnrealMCPBridge::StartServer()
     }
 
     // Create listener socket
-    TSharedPtr<FSocket> NewListenerSocket = MakeShareable(SocketSubsystem->CreateSocket(NAME_Stream, TEXT("UnrealMCPListener"), false));
+    const TSharedPtr<FSocket> NewListenerSocket = MakeShareable(SocketSubsystem->CreateSocket(NAME_Stream, TEXT("UnrealMCPListener"), false));
     if (!NewListenerSocket.IsValid())
     {
         UE_LOG(LogTemp, Error, TEXT("UnrealMCPBridge: Failed to create listener socket"));
@@ -133,7 +141,7 @@ void UUnrealMCPBridge::StartServer()
     NewListenerSocket->SetNonBlocking(true);
 
     // Bind to address
-    FIPv4Endpoint Endpoint(ServerAddress, Port);
+    const FIPv4Endpoint Endpoint(ServerAddress, Port);
     if (!NewListenerSocket->Bind(*Endpoint.ToInternetAddr()))
     {
         UE_LOG(LogTemp, Error, TEXT("UnrealMCPBridge: Failed to bind listener socket to %s:%d"), *ServerAddress.ToString(), Port);
@@ -200,107 +208,139 @@ void UUnrealMCPBridge::StopServer()
     UE_LOG(LogTemp, Display, TEXT("UnrealMCPBridge: Server stopped"));
 }
 
+void UUnrealMCPBridge::InitializeCommandRouting()
+{
+    // Ping command
+    CommandRoutingMap.Add(TEXT("ping"), ECommandHandlerType::Ping);
+
+    // Editor commands
+    CommandRoutingMap.Add(TEXT("get_actors_in_level"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("find_actors_by_name"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("spawn_actor"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("create_actor"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("delete_actor"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("set_actor_transform"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("get_actor_properties"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("set_actor_property"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("spawn_blueprint_actor"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("focus_viewport"), ECommandHandlerType::Editor);
+    CommandRoutingMap.Add(TEXT("take_screenshot"), ECommandHandlerType::Editor);
+
+    // Blueprint commands
+    CommandRoutingMap.Add(TEXT("create_blueprint"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("add_component_to_blueprint"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("set_component_property"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("set_physics_properties"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("compile_blueprint"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("set_blueprint_property"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("set_static_mesh_properties"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("set_pawn_properties"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("list_blueprints"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("blueprint_exists"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("get_blueprint_info"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("get_blueprint_components"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("get_blueprint_variables"), ECommandHandlerType::Blueprint);
+    CommandRoutingMap.Add(TEXT("get_blueprint_path"), ECommandHandlerType::Blueprint);
+
+    // Blueprint node commands
+    CommandRoutingMap.Add(TEXT("connect_blueprint_nodes"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_get_self_component_reference"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_self_reference"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("find_blueprint_nodes"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_event_node"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_input_action_node"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_function_node"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_get_component_node"), ECommandHandlerType::BlueprintNode);
+    CommandRoutingMap.Add(TEXT("add_blueprint_variable"), ECommandHandlerType::BlueprintNode);
+
+    // Input commands
+    CommandRoutingMap.Add(TEXT("create_input_mapping"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("create_enhanced_input_action"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("create_input_mapping_context"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("add_enhanced_input_mapping"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("remove_enhanced_input_mapping"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("apply_mapping_context"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("remove_mapping_context"), ECommandHandlerType::Input);
+    CommandRoutingMap.Add(TEXT("clear_all_mapping_contexts"), ECommandHandlerType::Input);
+
+    // UMG/Widget commands
+    CommandRoutingMap.Add(TEXT("create_umg_widget_blueprint"), ECommandHandlerType::Widget);
+    CommandRoutingMap.Add(TEXT("add_text_block_to_widget"), ECommandHandlerType::Widget);
+    CommandRoutingMap.Add(TEXT("add_button_to_widget"), ECommandHandlerType::Widget);
+    CommandRoutingMap.Add(TEXT("bind_widget_event"), ECommandHandlerType::Widget);
+    CommandRoutingMap.Add(TEXT("set_text_block_binding"), ECommandHandlerType::Widget);
+    CommandRoutingMap.Add(TEXT("add_widget_to_viewport"), ECommandHandlerType::Widget);
+
+    // Registry commands
+    CommandRoutingMap.Add(TEXT("get_supported_parent_classes"), ECommandHandlerType::Registry);
+    CommandRoutingMap.Add(TEXT("get_supported_component_types"), ECommandHandlerType::Registry);
+    CommandRoutingMap.Add(TEXT("get_available_api_methods"), ECommandHandlerType::Registry);
+}
+
 // Execute a command received from a client
 FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TSharedPtr<FJsonObject>& Params)
 {
     UE_LOG(LogTemp, Display, TEXT("UnrealMCPBridge: Executing command: %s"), *CommandType);
-    
+
     // Create a promise to wait for the result
     TPromise<FString> Promise;
-    TFuture<FString> Future = Promise.GetFuture();
-    
+    const TFuture<FString> Future = Promise.GetFuture();
+
     // Queue execution on Game Thread
     AsyncTask(ENamedThreads::GameThread, [this, CommandType, Params, Promise = MoveTemp(Promise)]() mutable
     {
-        TSharedPtr<FJsonObject> ResponseJson = MakeShareable(new FJsonObject);
-        
+        const TSharedPtr<FJsonObject> ResponseJson = MakeShareable(new FJsonObject);
+
         try
         {
             TSharedPtr<FJsonObject> ResultJson;
-            
-            if (CommandType == TEXT("ping"))
+
+            // O(1) command lookup
+            const ECommandHandlerType* HandlerType = CommandRoutingMap.Find(CommandType);
+            if (HandlerType)
             {
-                ResultJson = MakeShareable(new FJsonObject);
-                ResultJson->SetStringField(TEXT("message"), TEXT("pong"));
-            }
-            // Editor Commands (including actor manipulation)
-            else if (CommandType == TEXT("get_actors_in_level") || 
-                     CommandType == TEXT("find_actors_by_name") ||
-                     CommandType == TEXT("spawn_actor") ||
-                     CommandType == TEXT("create_actor") ||
-                     CommandType == TEXT("delete_actor") || 
-                     CommandType == TEXT("set_actor_transform") ||
-                     CommandType == TEXT("get_actor_properties") ||
-                     CommandType == TEXT("set_actor_property") ||
-                     CommandType == TEXT("spawn_blueprint_actor") ||
-                     CommandType == TEXT("focus_viewport") || 
-                     CommandType == TEXT("take_screenshot"))
-            {
-                ResultJson = EditorCommands->HandleCommand(CommandType, Params);
-            }
-            // Blueprint Commands
-            else if (CommandType == TEXT("create_blueprint") || 
-                     CommandType == TEXT("add_component_to_blueprint") || 
-                     CommandType == TEXT("set_component_property") || 
-                     CommandType == TEXT("set_physics_properties") || 
-                     CommandType == TEXT("compile_blueprint") || 
-                     CommandType == TEXT("set_blueprint_property") || 
-                     CommandType == TEXT("set_static_mesh_properties") ||
-                     CommandType == TEXT("set_pawn_properties"))
-            {
-                ResultJson = BlueprintCommands->HandleCommand(CommandType, Params);
-            }
-            // Blueprint Node Commands
-            else if (CommandType == TEXT("connect_blueprint_nodes") || 
-                     CommandType == TEXT("add_blueprint_get_self_component_reference") ||
-                     CommandType == TEXT("add_blueprint_self_reference") ||
-                     CommandType == TEXT("find_blueprint_nodes") ||
-                     CommandType == TEXT("add_blueprint_event_node") ||
-                     CommandType == TEXT("add_blueprint_input_action_node") ||
-                     CommandType == TEXT("add_blueprint_function_node") ||
-                     CommandType == TEXT("add_blueprint_get_component_node") ||
-                     CommandType == TEXT("add_blueprint_variable"))
-            {
-                ResultJson = BlueprintNodeCommands->HandleCommand(CommandType, Params);
-            }
-            // Input Commands (both legacy and enhanced)
-            else if (CommandType == TEXT("create_input_mapping") ||
-                     CommandType == TEXT("create_enhanced_input_action") ||
-                     CommandType == TEXT("create_input_mapping_context") ||
-                     CommandType == TEXT("add_enhanced_input_mapping") ||
-                     CommandType == TEXT("remove_enhanced_input_mapping") ||
-                     CommandType == TEXT("apply_mapping_context") ||
-                     CommandType == TEXT("remove_mapping_context") ||
-                     CommandType == TEXT("clear_all_mapping_contexts"))
-            {
-                ResultJson = InputCommands->HandleCommand(CommandType, Params);
-            }
-            // UMG Commands
-            else if (CommandType == TEXT("create_umg_widget_blueprint") ||
-                     CommandType == TEXT("add_text_block_to_widget") ||
-                     CommandType == TEXT("add_button_to_widget") ||
-                     CommandType == TEXT("bind_widget_event") ||
-                     CommandType == TEXT("set_text_block_binding") ||
-                     CommandType == TEXT("add_widget_to_viewport"))
-            {
-                ResultJson = UMGCommands->HandleCommand(CommandType, Params);
+                switch (*HandlerType)
+                {
+                    case ECommandHandlerType::Ping:
+                        ResultJson = MakeShareable(new FJsonObject);
+                        ResultJson->SetStringField(TEXT("message"), TEXT("pong"));
+                        break;
+                    case ECommandHandlerType::Editor:
+                        ResultJson = EditorCommands->HandleCommand(CommandType, Params);
+                        break;
+                    case ECommandHandlerType::Blueprint:
+                        ResultJson = BlueprintCommands->HandleCommand(CommandType, Params);
+                        break;
+                    case ECommandHandlerType::BlueprintNode:
+                        ResultJson = BlueprintNodeCommands->HandleCommand(CommandType, Params);
+                        break;
+                    case ECommandHandlerType::Input:
+                        ResultJson = InputCommands->HandleCommand(CommandType, Params);
+                        break;
+                    case ECommandHandlerType::Widget:
+                        ResultJson = UMGCommands->HandleCommand(CommandType, Params);
+                        break;
+                    case ECommandHandlerType::Registry:
+                        ResultJson = RegistryCommands->HandleCommand(CommandType, Params);
+                        break;
+                }
             }
             else
             {
                 ResponseJson->SetStringField(TEXT("status"), TEXT("error"));
                 ResponseJson->SetStringField(TEXT("error"), FString::Printf(TEXT("Unknown command: %s"), *CommandType));
-                
+
                 FString ResultString;
-                TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ResultString);
+                const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ResultString);
                 FJsonSerializer::Serialize(ResponseJson.ToSharedRef(), Writer);
                 Promise.SetValue(ResultString);
                 return;
             }
-            
+
             // Check if the result contains an error
             bool bSuccess = true;
             FString ErrorMessage;
-            
+
             if (ResultJson->HasField(TEXT("success")))
             {
                 bSuccess = ResultJson->GetBoolField(TEXT("success"));
@@ -309,7 +349,7 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
                     ErrorMessage = ResultJson->GetStringField(TEXT("error"));
                 }
             }
-            
+
             if (bSuccess)
             {
                 // Set success status and include the result
@@ -328,12 +368,12 @@ FString UUnrealMCPBridge::ExecuteCommand(const FString& CommandType, const TShar
             ResponseJson->SetStringField(TEXT("status"), TEXT("error"));
             ResponseJson->SetStringField(TEXT("error"), UTF8_TO_TCHAR(e.what()));
         }
-        
+
         FString ResultString;
-        TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ResultString);
+        const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ResultString);
         FJsonSerializer::Serialize(ResponseJson.ToSharedRef(), Writer);
         Promise.SetValue(ResultString);
     });
-    
+
     return Future.Get();
 }

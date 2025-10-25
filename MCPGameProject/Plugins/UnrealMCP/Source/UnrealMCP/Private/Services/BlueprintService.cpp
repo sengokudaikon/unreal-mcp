@@ -26,7 +26,7 @@ namespace UnrealMCP {
 		}
 
 		// Find blueprint
-		UBlueprint* Blueprint = FCommonUtils::FindBlueprint(Params.BlueprintName);
+		const UBlueprint* Blueprint = FCommonUtils::FindBlueprint(Params.BlueprintName);
 		if (!Blueprint) {
 			return TResult<AActor*>::Failure(
 				FString::Printf(TEXT("Blueprint not found: %s"), *Params.BlueprintName)
@@ -235,7 +235,7 @@ namespace UnrealMCP {
 			);
 		}
 
-		FString ValidationError = ValidateBlueprintForComponentOps(Blueprint);
+		const FString ValidationError = ValidateBlueprintForComponentOps(Blueprint);
 		if (!ValidationError.IsEmpty()) {
 			return TResult<UBlueprint*>::Failure(ValidationError);
 		}
@@ -379,7 +379,7 @@ namespace UnrealMCP {
 			return FVoidResult::Failure(FString::Printf(TEXT("Blueprint not found: %s"), *Params.BlueprintName));
 		}
 
-		FString ValidationError = ValidateBlueprintForComponentOps(Blueprint);
+		const FString ValidationError = ValidateBlueprintForComponentOps(Blueprint);
 		if (!ValidationError.IsEmpty()) {
 			return FVoidResult::Failure(ValidationError);
 		}

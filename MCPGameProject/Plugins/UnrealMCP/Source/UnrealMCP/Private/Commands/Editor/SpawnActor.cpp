@@ -40,13 +40,13 @@ auto FSpawnActor::Handle(
 	}
 
 
-	AActor* SpawnedActor = Result.GetValue();
+	const AActor* SpawnedActor = Result.GetValue();
 	TSharedPtr<FJsonObject> Response = MakeShared<FJsonObject>();
 	Response->SetStringField(TEXT("actor_name"), SpawnedActor->GetName());
 	Response->SetStringField(TEXT("actor_class"), SpawnedActor->GetClass()->GetName());
 
-	FVector ActorLocation = SpawnedActor->GetActorLocation();
-	TSharedPtr<FJsonObject> LocationObj = MakeShared<FJsonObject>();
+	const FVector ActorLocation = SpawnedActor->GetActorLocation();
+	const TSharedPtr<FJsonObject> LocationObj = MakeShared<FJsonObject>();
 	LocationObj->SetNumberField(TEXT("x"), ActorLocation.X);
 	LocationObj->SetNumberField(TEXT("y"), ActorLocation.Y);
 	LocationObj->SetNumberField(TEXT("z"), ActorLocation.Z);

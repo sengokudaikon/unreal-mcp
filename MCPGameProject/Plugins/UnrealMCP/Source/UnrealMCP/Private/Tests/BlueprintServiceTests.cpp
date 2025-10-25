@@ -41,7 +41,7 @@ bool FBlueprintServiceSpawnInvalidActorBlueprintTest::RunTest(const FString& Par
 	Params.Location = FVector(100.0f, 200.0f, 300.0f);
 	Params.Rotation = FRotator::ZeroRotator;
 
-	UnrealMCP::TResult<AActor*> Result = UnrealMCP::FBlueprintService::SpawnActorBlueprint(Params);
+	const UnrealMCP::TResult<AActor*> Result = UnrealMCP::FBlueprintService::SpawnActorBlueprint(Params);
 
 	// Verify failure
 	TestTrue(TEXT("SpawnActorBlueprint should fail for non-existent blueprint"), Result.IsFailure());
@@ -69,7 +69,7 @@ bool FBlueprintServiceAddComponentToInvalidBlueprintTest::RunTest(const FString&
 	Params.Rotation = FRotator::ZeroRotator;
 	Params.Scale = FVector(1.0f, 1.0f, 1.0f);
 
-	UnrealMCP::TResult<UBlueprint*> Result = UnrealMCP::FBlueprintService::AddComponent(Params);
+	const UnrealMCP::TResult<UBlueprint*> Result = UnrealMCP::FBlueprintService::AddComponent(Params);
 
 	// Verify failure
 	TestTrue(TEXT("AddComponent should fail for non-existent blueprint"), Result.IsFailure());
@@ -94,7 +94,7 @@ bool FBlueprintServiceAddComponentWithInvalidTypeTest::RunTest(const FString& Pa
 	Params.ComponentType = TEXT("NonExistentComponentType_XYZ123");
 	Params.ComponentName = TEXT("TestComponent");
 
-	UnrealMCP::TResult<UBlueprint*> Result = UnrealMCP::FBlueprintService::AddComponent(Params);
+	const UnrealMCP::TResult<UBlueprint*> Result = UnrealMCP::FBlueprintService::AddComponent(Params);
 
 	// Verify failure
 	TestTrue(TEXT("AddComponent should fail for invalid component type"), Result.IsFailure());
@@ -121,11 +121,11 @@ bool FBlueprintServiceSetComponentPropertyInvalidBlueprintTest::RunTest(const FS
 	PropertyParams.PropertyName = TEXT("SomeProperty");
 
 	// Create a simple boolean value
-	TSharedPtr<FJsonObject> JsonValue = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> JsonValue = MakeShareable(new FJsonObject);
 	JsonValue->SetBoolField(TEXT("value"), true);
 	PropertyParams.PropertyValue = MakeShareable(new FJsonValueBoolean(true));
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetComponentProperty(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetComponentProperty(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("TestComponent"),
 		PropertyParams
@@ -158,7 +158,7 @@ bool FBlueprintServiceSetPhysicsPropertiesInvalidBlueprintTest::RunTest(const FS
 	Params.AngularDamping = 0.0f;
 	Params.bEnableGravity = true;
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPhysicsProperties(Params);
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPhysicsProperties(Params);
 
 	// Verify failure
 	TestTrue(TEXT("SetPhysicsProperties should fail for non-existent blueprint"), Result.IsFailure());
@@ -178,7 +178,7 @@ bool FBlueprintServiceSetStaticMeshPropertiesInvalidBlueprintTest::RunTest(const
 {
 	// Test: Setting static mesh properties on non-existent blueprint should fail
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetStaticMeshProperties(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetStaticMeshProperties(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		TEXT("TestComponent"),
 		TEXT("/Game/Meshes/SomeMesh"),
@@ -203,7 +203,7 @@ bool FBlueprintServiceSetStaticMeshPropertiesInvalidMeshTest::RunTest(const FStr
 {
 	// Test: Setting static mesh with invalid mesh path should fail
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetStaticMeshProperties(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetStaticMeshProperties(
 		TEXT("SomeBlueprint"),  // This will fail before mesh validation
 		TEXT("TestComponent"),
 		TEXT("/Game/Meshes/NonExistentMesh_XYZ123"),
@@ -232,11 +232,11 @@ bool FBlueprintServiceSetBlueprintPropertyInvalidBlueprintTest::RunTest(const FS
 	PropertyParams.PropertyName = TEXT("SomeProperty");
 
 	// Create a simple boolean value
-	TSharedPtr<FJsonObject> JsonValue = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> JsonValue = MakeShareable(new FJsonObject);
 	JsonValue->SetBoolField(TEXT("value"), true);
 	PropertyParams.PropertyValue = MakeShareable(new FJsonValueBoolean(true));
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetBlueprintProperty(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetBlueprintProperty(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		PropertyParams
 	);
@@ -260,13 +260,13 @@ bool FBlueprintServiceSetPawnPropertiesInvalidBlueprintTest::RunTest(const FStri
 	// Test: Setting pawn properties on non-existent blueprint should fail
 
 	// Create a JSON object with pawn properties
-	TSharedPtr<FJsonObject> PawnProperties = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> PawnProperties = MakeShareable(new FJsonObject);
 	PawnProperties->SetBoolField(TEXT("AutoPossessPlayer"), true);
 	PawnProperties->SetBoolField(TEXT("bUseControllerRotationPitch"), true);
 	PawnProperties->SetBoolField(TEXT("bUseControllerRotationYaw"), true);
 	PawnProperties->SetBoolField(TEXT("bUseControllerRotationRoll"), true);
 
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPawnProperties(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPawnProperties(
 		TEXT("NonExistentBlueprint_XYZ123"),
 		PawnProperties
 	);
@@ -292,14 +292,14 @@ bool FBlueprintServiceSetPawnPropertiesWithValidBlueprintTest::RunTest(const FSt
 	// This test verifies that the service can handle valid JSON input
 	// even if we can't test with a real blueprint in this context
 
-	TSharedPtr<FJsonObject> PawnProperties = MakeShareable(new FJsonObject);
+	const TSharedPtr<FJsonObject> PawnProperties = MakeShareable(new FJsonObject);
 	PawnProperties->SetBoolField(TEXT("AutoPossessPlayer"), false);
 	PawnProperties->SetBoolField(TEXT("bUseControllerRotationPitch"), false);
 	PawnProperties->SetBoolField(TEXT("bUseControllerRotationYaw"), false);
 	PawnProperties->SetBoolField(TEXT("bUseControllerRotationRoll"), false);
 
 	// Try with a blueprint name that likely doesn't exist - should fail gracefully
-	UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPawnProperties(
+	const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPawnProperties(
 		TEXT("SomePawnBlueprint"),
 		PawnProperties
 	);
@@ -382,7 +382,7 @@ bool FBlueprintServicePhysicsParameterValidationTest::RunTest(const FString& Par
 		Params.AngularDamping = 0.0f;
 		Params.bEnableGravity = true;
 
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPhysicsProperties(Params);
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPhysicsProperties(Params);
 		// Should fail, but not due to parameter validation (due to blueprint not existing)
 		TestTrue(TEXT("Should fail gracefully with negative mass"), Result.IsFailure());
 	}
@@ -398,7 +398,7 @@ bool FBlueprintServicePhysicsParameterValidationTest::RunTest(const FString& Par
 		Params.AngularDamping = 1000.0f;  // Very high damping
 		Params.bEnableGravity = false;
 
-		UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPhysicsProperties(Params);
+		const UnrealMCP::FVoidResult Result = UnrealMCP::FBlueprintService::SetPhysicsProperties(Params);
 		// Should fail, but not due to parameter validation (due to blueprint not existing)
 		TestTrue(TEXT("Should fail gracefully with extreme damping"), Result.IsFailure());
 	}

@@ -21,7 +21,7 @@ auto FGetActorProperties::Handle(
 	}
 
 
-	TSharedPtr<FJsonObject> PropertiesObj = MakeShared<FJsonObject>();
+	const TSharedPtr<FJsonObject> PropertiesObj = MakeShared<FJsonObject>();
 	for (const auto& Property : Properties) {
 		PropertiesObj->SetStringField(Property.Key, Property.Value);
 	}

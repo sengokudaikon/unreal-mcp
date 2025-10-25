@@ -1,7 +1,5 @@
 """
-Project Tools for Unreal MCP.
-
-This module provides tools for managing project-wide settings and configuration.
+Project Tools for Unreal MCP - Refactored with service architecture.
 """
 
 import logging
@@ -9,54 +7,35 @@ from typing import Any, Dict
 
 from mcp.server.fastmcp import Context, FastMCP
 
-# Get logger
+from services.service_manager import get_service_manager
+
 logger = logging.getLogger("UnrealMCP")
 
 
 def register_project_tools(mcp: FastMCP):
-    """Register project tools with the MCP server."""
+    """Register Project tools with the MCP server."""
 
     @mcp.tool()
     def create_input_mapping(
         ctx: Context, action_name: str, key: str, input_type: str = "Action"
     ) -> Dict[str, Any]:
-        """
-        Create an input mapping for the project.
-
-        Args:
-            action_name: Name of the input action
-            key: Key to bind (SpaceBar, LeftMouseButton, etc.)
-            input_type: Type of input mapping (Action or Axis)
-
-        Returns:
-            Response indicating success or failure
-        """
-        from unreal_mcp_server import get_unreal_connection
-
+        """Create an input mapping for the project."""
         try:
-            unreal = get_unreal_connection()
-            if not unreal:
-                logger.error("Failed to connect to Unreal Engine")
-                return {
-                    "success": False,
-                    "message": "Failed to connect to Unreal Engine",
-                }
-
-            params = {"action_name": action_name, "key": key, "input_type": input_type}
-
-            logger.info(f"Creating input mapping '{action_name}' with key '{key}'")
-            response = unreal.send_command("create_input_mapping", params)
-
-            if not response:
-                logger.error("No response from Unreal Engine")
-                return {"success": False, "message": "No response from Unreal Engine"}
-
-            logger.info(f"Input mapping creation response: {response}")
-            return response
-
+            service = get_service_manager().project_service
+            result = service.create_input_mapping(action_name, key, input_type)
+            return _handle_service_result(result, "create_input_mapping")
         except Exception as e:
-            error_msg = f"Error creating input mapping: {e}"
-            logger.error(error_msg)
-            return {"success": False, "message": error_msg}
+            return _handle_error("create_input_mapping", e)
 
-    logger.info("Project tools registered successfully")
+
+def _handle_service_result(result: Dict[str, Any], operation: str) -> Dict[str, Any]:
+    """Handle service result - just pass through C++ command response."""
+    logger.info(f"Completed {operation}")
+    return result
+
+
+def _handle_error(operation: str, error: Exception) -> Dict[str, Any]:
+    """Handle exceptions and return error response."""
+    error_msg = f"Error in {operation}: {error}"
+    logger.error(error_msg)
+    return {"success": False, "message": error_msg}

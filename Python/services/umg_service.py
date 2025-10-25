@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from core.connection import UnrealConnection
-from core.types import Result, Vector3
+from core.types import Vector3
 
 logger = logging.getLogger("UnrealMCP")
 
@@ -19,10 +19,10 @@ class UMGService:
 
     def create_widget_blueprint(
         self, widget_name: str, parent_class: str = "UserWidget", path: str = "/Game/UI"
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Create a new UMG Widget Blueprint."""
         params = {
-            "widget_name": widget_name,
+            "name": widget_name,  # C++ plugin expects 'name' not 'widget_name'
             "parent_class": parent_class,
             "path": path,
         }
@@ -37,7 +37,7 @@ class UMGService:
         size: List[int] = None,
         font_size: int = 12,
         color: List[float] = None,
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Add a Text Block widget to a UMG Widget Blueprint."""
         if position is None:
             position = Vector3(0, 0, 0)
@@ -67,7 +67,7 @@ class UMGService:
         font_size: int = 12,
         color: List[float] = None,
         background_color: List[float] = None,
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Add a Button widget to a UMG Widget Blueprint."""
         if position is None:
             position = Vector3(0, 0, 0)
@@ -96,7 +96,7 @@ class UMGService:
         widget_component_name: str,
         event_name: str,
         function_name: str = "",
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Bind an event on a widget component to a function."""
         params = {
             "widget_name": widget_name,
@@ -110,7 +110,7 @@ class UMGService:
 
     def add_widget_to_viewport(
         self, widget_name: str, z_order: int = 0
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Add a Widget Blueprint instance to the viewport."""
         params = {"widget_name": widget_name, "z_order": z_order}
         return self.connection.send_command("add_widget_to_viewport", params)
@@ -121,7 +121,7 @@ class UMGService:
         text_block_name: str,
         binding_property: str,
         binding_type: str = "Text",
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Set up a property binding for a Text Block widget."""
         params = {
             "widget_name": widget_name,

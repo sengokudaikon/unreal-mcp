@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from core.connection import UnrealConnection
-from core.types import Result, Transform, Vector3
+from core.types import Transform, Vector3
 
 logger = logging.getLogger("UnrealMCP")
 
@@ -17,30 +17,18 @@ class EditorService:
     def __init__(self, connection: UnrealConnection):
         self.connection = connection
 
-    def get_actors_in_level(self) -> Result[List[Dict[str, Any]]]:
+    def get_actors_in_level(self) -> Dict[str, Any]:
         """Get a list of all actors in the current level."""
-        response = self.connection.send_command("get_actors_in_level", {})
-        if response.is_success and response.get_value().get("success", True):
-            actors = response.get_value().get("actors", [])
-            return Result.success(actors)
-        return Result.failure(
-            response.get_error() if response.is_failure else "Failed to get actors"
-        )
+        return self.connection.send_command("get_actors_in_level", {})
 
-    def find_actors_by_name(self, pattern: str) -> Result[List[Dict[str, Any]]]:
+    def find_actors_by_name(self, pattern: str) -> Dict[str, Any]:
         """Find actors by name pattern."""
         params = {"pattern": pattern}
-        response = self.connection.send_command("find_actors_by_name", params)
-        if response.is_success and response.get_value().get("success", True):
-            actors = response.get_value().get("actors", [])
-            return Result.success(actors)
-        return Result.failure(
-            response.get_error() if response.is_failure else "Failed to find actors"
-        )
+        return self.connection.send_command("find_actors_by_name", params)
 
     def spawn_actor(
         self, name: str, actor_type: str, transform: Transform = None
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Spawn an actor in the level."""
         if transform is None:
             transform = Transform(
@@ -49,22 +37,26 @@ class EditorService:
                 scale=Vector3(1, 1, 1),
             )
 
-        params = {"name": name, "type": actor_type, **transform.to_dict()}
+        params = {
+            "actor_name": name,  # C++ plugin expects 'actor_name' not 'name'
+            "actor_class": actor_type,  # C++ plugin expects 'actor_class' not 'type'
+            **transform.to_dict()
+        }
         return self.connection.send_command("spawn_actor", params)
 
-    def delete_actor(self, name: str) -> Result[Dict[str, Any]]:
+    def delete_actor(self, name: str) -> Dict[str, Any]:
         """Delete an actor from the level."""
         params = {"name": name}
         return self.connection.send_command("delete_actor", params)
 
     def set_actor_transform(
         self, name: str, transform: Transform
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Set the transform of an actor."""
         params = {"name": name, **transform.to_dict()}
         return self.connection.send_command("set_actor_transform", params)
 
-    def get_actor_properties(self, name: str) -> Result[Dict[str, Any]]:
+    def get_actor_properties(self, name: str) -> Dict[str, Any]:
         """Get properties of an actor."""
         params = {"name": name}
         return self.connection.send_command("get_actor_properties", params)
@@ -75,7 +67,7 @@ class EditorService:
         location: Vector3 = None,
         distance: float = None,
         orientation: str = None,
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Focus the viewport on a target or location."""
         params = {}
         if target:
@@ -91,7 +83,7 @@ class EditorService:
 
     def take_screenshot(
         self, filename: str = None, show_ui: bool = True, resolution: List[int] = None
-    ) -> Result[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         """Take a screenshot of the viewport."""
         params = {"show_ui": show_ui}
         if filename:

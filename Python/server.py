@@ -51,11 +51,11 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
 # Initialize server
 mcp = FastMCP("UnrealMCP", lifespan=server_lifespan)
 
-# Register tools using the new architecture
-from tools.blueprint_tools_new import register_blueprint_tools
-from tools.editor_tools_new import register_editor_tools
-from tools.project_tools_new import register_project_tools
-from tools.umg_tools_new import register_umg_tools
+# Register tools
+from tools.blueprint_tools import register_blueprint_tools
+from tools.editor_tools import register_editor_tools
+from tools.project_tools import register_project_tools
+from tools.umg_tools import register_umg_tools
 
 # Register all tools
 register_blueprint_tools(mcp)

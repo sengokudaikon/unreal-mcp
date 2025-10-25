@@ -9,7 +9,7 @@ description = "Unreal Engine MCP Server with service architecture"
 authors = [{name = "Unreal MCP Team"}]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -41,7 +41,7 @@ include = ["core*", "services*", "tools*"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py310']
 include = '\.pyi?$'
 extend-exclude = '''
 /(

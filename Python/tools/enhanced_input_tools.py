@@ -6,21 +6,20 @@ Enhanced Input is the modern input system for Unreal Engine 5.1+, replacing the 
 """
 
 import logging
-from typing import Dict, Any, Optional
-from mcp.server.fastmcp import FastMCP, Context
+from typing import Any, Dict
+
+from mcp.server.fastmcp import Context, FastMCP
 
 # Get logger
 logger = logging.getLogger("UnrealMCP")
+
 
 def register_enhanced_input_tools(mcp: FastMCP):
     """Register Enhanced Input tools with the MCP server."""
 
     @mcp.tool()
     def create_enhanced_input_action(
-        ctx: Context,
-        name: str,
-        value_type: str = "Boolean",
-        path: str = "/Game/Input"
+        ctx: Context, name: str, value_type: str = "Boolean", path: str = "/Game/Input"
     ) -> Dict[str, Any]:
         """
         Create an Enhanced Input Action asset.
@@ -53,15 +52,16 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
-            params = {
-                "name": name,
-                "value_type": value_type,
-                "path": path
-            }
+            params = {"name": name, "value_type": value_type, "path": path}
 
-            logger.info(f"Creating Enhanced Input Action '{name}' with value type '{value_type}'")
+            logger.info(
+                f"Creating Enhanced Input Action '{name}' with value type '{value_type}'"
+            )
             response = unreal.send_command("create_enhanced_input_action", params)
 
             if not response:
@@ -78,9 +78,7 @@ def register_enhanced_input_tools(mcp: FastMCP):
 
     @mcp.tool()
     def create_input_mapping_context(
-        ctx: Context,
-        name: str,
-        path: str = "/Game/Input"
+        ctx: Context, name: str, path: str = "/Game/Input"
     ) -> Dict[str, Any]:
         """
         Create an Input Mapping Context asset.
@@ -109,12 +107,12 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
-            params = {
-                "name": name,
-                "path": path
-            }
+            params = {"name": name, "path": path}
 
             logger.info(f"Creating Input Mapping Context '{name}'")
             response = unreal.send_command("create_input_mapping_context", params)
@@ -133,10 +131,7 @@ def register_enhanced_input_tools(mcp: FastMCP):
 
     @mcp.tool()
     def add_enhanced_input_mapping(
-        ctx: Context,
-        context_path: str,
-        action_path: str,
-        key: str
+        ctx: Context, context_path: str, action_path: str, key: str
     ) -> Dict[str, Any]:
         """
         Add a key mapping to an Input Mapping Context.
@@ -179,15 +174,20 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
             params = {
                 "context_path": context_path,
                 "action_path": action_path,
-                "key": key
+                "key": key,
             }
 
-            logger.info(f"Adding Enhanced Input mapping: {key} -> {action_path} in {context_path}")
+            logger.info(
+                f"Adding Enhanced Input mapping: {key} -> {action_path} in {context_path}"
+            )
             response = unreal.send_command("add_enhanced_input_mapping", params)
 
             if not response:
@@ -204,9 +204,7 @@ def register_enhanced_input_tools(mcp: FastMCP):
 
     @mcp.tool()
     def remove_enhanced_input_mapping(
-        ctx: Context,
-        context_path: str,
-        action_path: str
+        ctx: Context, context_path: str, action_path: str
     ) -> Dict[str, Any]:
         """
         Remove all key mappings for an Input Action from a Mapping Context.
@@ -230,14 +228,16 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
-            params = {
-                "context_path": context_path,
-                "action_path": action_path
-            }
+            params = {"context_path": context_path, "action_path": action_path}
 
-            logger.info(f"Removing Enhanced Input mapping: {action_path} from {context_path}")
+            logger.info(
+                f"Removing Enhanced Input mapping: {action_path} from {context_path}"
+            )
             response = unreal.send_command("remove_enhanced_input_mapping", params)
 
             if not response:
@@ -254,9 +254,7 @@ def register_enhanced_input_tools(mcp: FastMCP):
 
     @mcp.tool()
     def apply_mapping_context(
-        ctx: Context,
-        context_path: str,
-        priority: int = 0
+        ctx: Context, context_path: str, priority: int = 0
     ) -> Dict[str, Any]:
         """
         Apply an Input Mapping Context to the player's input subsystem at runtime.
@@ -285,14 +283,16 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
-            params = {
-                "context_path": context_path,
-                "priority": priority
-            }
+            params = {"context_path": context_path, "priority": priority}
 
-            logger.info(f"Applying Input Mapping Context: {context_path} with priority {priority}")
+            logger.info(
+                f"Applying Input Mapping Context: {context_path} with priority {priority}"
+            )
             response = unreal.send_command("apply_mapping_context", params)
 
             if not response:
@@ -308,10 +308,7 @@ def register_enhanced_input_tools(mcp: FastMCP):
             return {"success": False, "message": error_msg}
 
     @mcp.tool()
-    def remove_mapping_context(
-        ctx: Context,
-        context_path: str
-    ) -> Dict[str, Any]:
+    def remove_mapping_context(ctx: Context, context_path: str) -> Dict[str, Any]:
         """
         Remove an Input Mapping Context from the player's input subsystem.
 
@@ -333,11 +330,12 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
-            params = {
-                "context_path": context_path
-            }
+            params = {"context_path": context_path}
 
             logger.info(f"Removing Input Mapping Context: {context_path}")
             response = unreal.send_command("remove_mapping_context", params)
@@ -375,7 +373,10 @@ def register_enhanced_input_tools(mcp: FastMCP):
             unreal = get_unreal_connection()
             if not unreal:
                 logger.error("Failed to connect to Unreal Engine")
-                return {"success": False, "message": "Failed to connect to Unreal Engine"}
+                return {
+                    "success": False,
+                    "message": "Failed to connect to Unreal Engine",
+                }
 
             logger.info("Clearing all Input Mapping Contexts")
             response = unreal.send_command("clear_all_mapping_contexts", {})

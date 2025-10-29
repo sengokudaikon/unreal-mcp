@@ -7,8 +7,10 @@ from typing import Optional
 
 from core.connection import UnrealConnection
 from core.errors import ConnectionError
+from services.blueprint_node_service import BlueprintNodeService
 from services.blueprint_service import BlueprintService
 from services.editor_service import EditorService
+from services.input_service import InputService
 from services.project_service import ProjectService
 from services.registry_service import RegistryService
 from services.umg_service import UMGService
@@ -22,7 +24,9 @@ class ServiceManager:
     def __init__(self):
         self.connection: Optional[UnrealConnection] = None
         self._blueprint_service: Optional[BlueprintService] = None
+        self._blueprint_node_service: Optional[BlueprintNodeService] = None
         self._editor_service: Optional[EditorService] = None
+        self._input_service: Optional[InputService] = None
         self._umg_service: Optional[UMGService] = None
         self._project_service: Optional[ProjectService] = None
         self._registry_service: Optional[RegistryService] = None
@@ -50,6 +54,15 @@ class ServiceManager:
         return self._blueprint_service
 
     @property
+    def blueprint_node_service(self) -> BlueprintNodeService:
+        """Get the Blueprint Node service."""
+        if self._blueprint_node_service is None:
+            if self.connection is None:
+                raise RuntimeError("Service manager not initialized")
+            self._blueprint_node_service = BlueprintNodeService(self.connection)
+        return self._blueprint_node_service
+
+    @property
     def editor_service(self) -> EditorService:
         """Get the Editor service."""
         if self._editor_service is None:
@@ -57,6 +70,15 @@ class ServiceManager:
                 raise RuntimeError("Service manager not initialized")
             self._editor_service = EditorService(self.connection)
         return self._editor_service
+
+    @property
+    def input_service(self) -> InputService:
+        """Get the Input service."""
+        if self._input_service is None:
+            if self.connection is None:
+                raise RuntimeError("Service manager not initialized")
+            self._input_service = InputService(self.connection)
+        return self._input_service
 
     @property
     def umg_service(self) -> UMGService:

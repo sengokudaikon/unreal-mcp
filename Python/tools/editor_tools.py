@@ -102,6 +102,18 @@ def register_editor_tools(mcp: FastMCP):
             return _handle_error("get_actor_properties", e)
 
     @mcp.tool()
+    def set_actor_property(
+        ctx: Context, name: str, property_name: str, property_value: str
+    ) -> Dict[str, Any]:
+        """Set a property of an actor by name."""
+        try:
+            service = get_service_manager().editor_service
+            result = service.set_actor_property(name, property_name, property_value)
+            return _handle_service_result(result, "set_actor_property")
+        except Exception as e:
+            return _handle_error("set_actor_property", e)
+
+    @mcp.tool()
     def focus_viewport(
         ctx: Context,
         target: str = None,

@@ -141,6 +141,165 @@ def register_blueprint_tools(mcp: FastMCP):
         except Exception as e:
             return _handle_error("set_blueprint_property", e)
 
+    @mcp.tool()
+    def list_blueprints(ctx: Context) -> Dict[str, Any]:
+        """List all available blueprints in the project."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.list_blueprints()
+            return _handle_service_result(result, "list_blueprints")
+        except Exception as e:
+            return _handle_error("list_blueprints", e)
+
+    @mcp.tool()
+    def blueprint_exists(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Check if a blueprint with the given name exists."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.blueprint_exists(blueprint_name)
+            return _handle_service_result(result, "blueprint_exists")
+        except Exception as e:
+            return _handle_error("blueprint_exists", e)
+
+    @mcp.tool()
+    def get_blueprint_info(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Get detailed information about a specified blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_blueprint_info(blueprint_name)
+            return _handle_service_result(result, "get_blueprint_info")
+        except Exception as e:
+            return _handle_error("get_blueprint_info", e)
+
+    @mcp.tool()
+    def get_blueprint_components(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Get all components of a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_blueprint_components(blueprint_name)
+            return _handle_service_result(result, "get_blueprint_components")
+        except Exception as e:
+            return _handle_error("get_blueprint_components", e)
+
+    @mcp.tool()
+    def get_blueprint_variables(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Get all variables of a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_blueprint_variables(blueprint_name)
+            return _handle_service_result(result, "get_blueprint_variables")
+        except Exception as e:
+            return _handle_error("get_blueprint_variables", e)
+
+    @mcp.tool()
+    def get_blueprint_functions(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Get all functions of a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_blueprint_functions(blueprint_name)
+            return _handle_service_result(result, "get_blueprint_functions")
+        except Exception as e:
+            return _handle_error("get_blueprint_functions", e)
+
+    @mcp.tool()
+    def get_component_properties(ctx: Context, blueprint_name: str, component_name: str) -> Dict[str, Any]:
+        """Get properties of a specific component in a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_component_properties(blueprint_name, component_name)
+            return _handle_service_result(result, "get_component_properties")
+        except Exception as e:
+            return _handle_error("get_component_properties", e)
+
+    @mcp.tool()
+    def set_component_property(
+        ctx: Context, blueprint_name: str, component_name: str, property_name: str, property_value: str
+    ) -> Dict[str, Any]:
+        """Set a property on a component in a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.set_component_property(blueprint_name, component_name, property_name, property_value)
+            return _handle_service_result(result, "set_component_property")
+        except Exception as e:
+            return _handle_error("set_component_property", e)
+
+    @mcp.tool()
+    def remove_component(ctx: Context, blueprint_name: str, component_name: str) -> Dict[str, Any]:
+        """Remove a component from a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.remove_component(blueprint_name, component_name)
+            return _handle_service_result(result, "remove_component")
+        except Exception as e:
+            return _handle_error("remove_component", e)
+
+    @mcp.tool()
+    def rename_component(ctx: Context, blueprint_name: str, old_name: str, new_name: str) -> Dict[str, Any]:
+        """Rename a component in a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.rename_component(blueprint_name, old_name, new_name)
+            return _handle_service_result(result, "rename_component")
+        except Exception as e:
+            return _handle_error("rename_component", e)
+
+    @mcp.tool()
+    def get_blueprint_path(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Get the file path of a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_blueprint_path(blueprint_name)
+            return _handle_service_result(result, "get_blueprint_path")
+        except Exception as e:
+            return _handle_error("get_blueprint_path", e)
+
+    @mcp.tool()
+    def get_component_hierarchy(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Get the component hierarchy of a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.get_component_hierarchy(blueprint_name)
+            return _handle_service_result(result, "get_component_hierarchy")
+        except Exception as e:
+            return _handle_error("get_component_hierarchy", e)
+
+    @mcp.tool()
+    def set_component_transform(
+        ctx: Context,
+        blueprint_name: str,
+        component_name: str,
+        location: List[float] = None,
+        rotation: List[float] = None,
+        scale: List[float] = None,
+    ) -> Dict[str, Any]:
+        """Set the transform of a component in a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.set_component_transform(blueprint_name, component_name, location, rotation, scale)
+            return _handle_service_result(result, "set_component_transform")
+        except Exception as e:
+            return _handle_error("set_component_transform", e)
+
+    @mcp.tool()
+    def delete_blueprint(ctx: Context, blueprint_name: str) -> Dict[str, Any]:
+        """Delete a blueprint."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.delete_blueprint(blueprint_name)
+            return _handle_service_result(result, "delete_blueprint")
+        except Exception as e:
+            return _handle_error("delete_blueprint", e)
+
+    @mcp.tool()
+    def duplicate_blueprint(ctx: Context, blueprint_name: str, new_name: str) -> Dict[str, Any]:
+        """Duplicate a blueprint with a new name."""
+        try:
+            service = get_service_manager().blueprint_service
+            result = service.duplicate_blueprint(blueprint_name, new_name)
+            return _handle_service_result(result, "duplicate_blueprint")
+        except Exception as e:
+            return _handle_error("duplicate_blueprint", e)
+
 
 def _handle_service_result(result: Dict[str, Any], operation: str) -> Dict[str, Any]:
     """Handle service result - just pass through C++ command response."""

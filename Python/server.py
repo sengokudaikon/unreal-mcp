@@ -52,15 +52,19 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
 mcp = FastMCP("UnrealMCP", lifespan=server_lifespan)
 
 # Register tools
+from tools.blueprint_node_tools import register_blueprint_node_tools
 from tools.blueprint_tools import register_blueprint_tools
 from tools.editor_tools import register_editor_tools
+from tools.input_tools import register_input_tools
 from tools.project_tools import register_project_tools
 from tools.registry_tools import register_registry_tools
 from tools.umg_tools import register_umg_tools
 
 # Register all tools
 register_blueprint_tools(mcp)
+register_blueprint_node_tools(mcp)
 register_editor_tools(mcp)
+register_input_tools(mcp)
 register_umg_tools(mcp)
 register_project_tools(mcp)
 register_registry_tools(mcp)
@@ -88,6 +92,31 @@ def info():
     - `set_physics_properties(...)` - Configure physics with validation
     - `compile_blueprint(blueprint_name)` - Compile Blueprint changes
     - `set_blueprint_property(...)` - Set Blueprint properties
+    - `list_blueprints()` - List all available blueprints in the project
+    - `blueprint_exists(blueprint_name)` - Check if a blueprint exists
+    - `get_blueprint_info(blueprint_name)` - Get detailed blueprint information
+    - `get_blueprint_components(blueprint_name)` - Get all blueprint components
+    - `get_blueprint_variables(blueprint_name)` - Get all blueprint variables
+    - `get_blueprint_functions(blueprint_name)` - Get all blueprint functions
+    - `get_component_properties(...)` - Get component properties
+    - `set_component_property(...)` - Set component properties
+    - `remove_component(...)` - Remove components from blueprints
+    - `rename_component(...)` - Rename blueprint components
+    - `get_blueprint_path(blueprint_name)` - Get blueprint file path
+    - `get_component_hierarchy(blueprint_name)` - Get component hierarchy
+    - `set_component_transform(...)` - Set component transforms
+    - `delete_blueprint(blueprint_name)` - Delete blueprints
+    - `duplicate_blueprint(...)` - Duplicate blueprints with new names
+
+    ### Blueprint Node Tools
+    - `connect_blueprint_nodes(...)` - Connect two blueprint nodes via their pins
+    - `add_blueprint_event_node(...)` - Add event nodes to blueprint graphs
+    - `add_blueprint_function_node(...)` - Add function call nodes to blueprint graphs
+    - `add_blueprint_variable(...)` - Add variables to blueprints
+    - `find_blueprint_nodes(...)` - Find nodes in blueprint graphs by type and criteria
+    - `add_blueprint_input_action_node(...)` - Add legacy input action nodes
+    - `add_blueprint_self_reference_node(...)` - Add self reference nodes
+    - `add_blueprint_get_self_component_reference_node(...)` - Add self component reference nodes
 
     ### Editor Tools
     - `get_actors_in_level()` - List all actors in current level
@@ -96,8 +125,18 @@ def info():
     - `delete_actor(name)` - Remove actors
     - `set_actor_transform(...)` - Modify actor transforms
     - `get_actor_properties(name)` - Get actor properties
+    - `set_actor_property(...)` - Set actor properties by name
     - `focus_viewport(...)` - Focus viewport on targets
     - `take_screenshot(...)` - Capture screenshots
+
+    ### Input Tools
+    - `create_enhanced_input_action(...)` - Create Enhanced Input Action assets
+    - `create_input_mapping_context(...)` - Create Input Mapping Context assets
+    - `add_enhanced_input_mapping(...)` - Add key mappings to contexts
+    - `remove_enhanced_input_mapping(...)` - Remove key mappings from contexts
+    - `apply_mapping_context(...)` - Apply mapping contexts with priority
+    - `remove_mapping_context(...)` - Remove applied mapping contexts
+    - `clear_all_mapping_contexts()` - Clear all applied mapping contexts
 
     ### UMG Tools
     - `create_widget_blueprint(...)` - Create widget blueprints
@@ -108,7 +147,7 @@ def info():
     - `set_text_block_binding(...)` - Set dynamic bindings
 
     ### Project Tools
-    - `create_input_mapping(...)` - Create input mappings
+    - `create_legacy_input_mapping(...)` - Create legacy input mappings (deprecated)
 
     ### Registry Tools
     - `get_available_api_methods()` - Get all available API methods organized by category

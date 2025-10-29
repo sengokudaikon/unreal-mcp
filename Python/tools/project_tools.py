@@ -16,16 +16,16 @@ def register_project_tools(mcp: FastMCP):
     """Register Project tools with the MCP server."""
 
     @mcp.tool()
-    def create_input_mapping(
+    def create_legacy_input_mapping(
         ctx: Context, action_name: str, key: str, input_type: str = "Action"
     ) -> Dict[str, Any]:
-        """Create an input mapping for the project."""
+        """Create a legacy input mapping for the project (deprecated, use enhanced input system)."""
         try:
             service = get_service_manager().project_service
-            result = service.create_input_mapping(action_name, key, input_type)
-            return _handle_service_result(result, "create_input_mapping")
+            result = service.create_legacy_input_mapping(action_name, key, input_type)
+            return _handle_service_result(result, "create_legacy_input_mapping")
         except Exception as e:
-            return _handle_error("create_input_mapping", e)
+            return _handle_error("create_legacy_input_mapping", e)
 
 
 def _handle_service_result(result: Dict[str, Any], operation: str) -> Dict[str, Any]:

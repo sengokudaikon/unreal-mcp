@@ -61,6 +61,20 @@ class EditorService:
         params = {"name": name}
         return self.connection.send_command("get_actor_properties", params)
 
+    def set_actor_property(self, name: str, property_name: str, property_value: str) -> Dict[str, Any]:
+        """Set a property of an actor by name."""
+        try:
+            logger.info(f"Setting actor property: {name}.{property_name} = {property_value}")
+            params = {
+                "name": name,
+                "property_name": property_name,
+                "property_value": property_value,
+            }
+            return self.connection.send_command("set_actor_property", params)
+        except Exception as e:
+            logger.error(f"Failed to set actor property: {e}")
+            raise
+
     def focus_viewport(
         self,
         target: str = None,

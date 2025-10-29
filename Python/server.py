@@ -55,6 +55,7 @@ mcp = FastMCP("UnrealMCP", lifespan=server_lifespan)
 from tools.blueprint_tools import register_blueprint_tools
 from tools.editor_tools import register_editor_tools
 from tools.project_tools import register_project_tools
+from tools.registry_tools import register_registry_tools
 from tools.umg_tools import register_umg_tools
 
 # Register all tools
@@ -62,6 +63,7 @@ register_blueprint_tools(mcp)
 register_editor_tools(mcp)
 register_umg_tools(mcp)
 register_project_tools(mcp)
+register_registry_tools(mcp)
 
 
 @mcp.prompt()
@@ -107,6 +109,11 @@ def info():
 
     ### Project Tools
     - `create_input_mapping(...)` - Create input mappings
+
+    ### Registry Tools
+    - `get_available_api_methods()` - Get all available API methods organized by category
+    - `get_supported_parent_classes()` - Get all supported parent classes for Blueprint creation
+    - `get_supported_component_types()` - Get all supported component types
 
     ## Benefits of New Architecture
 

@@ -10,6 +10,7 @@ from core.errors import ConnectionError
 from services.blueprint_service import BlueprintService
 from services.editor_service import EditorService
 from services.project_service import ProjectService
+from services.registry_service import RegistryService
 from services.umg_service import UMGService
 
 logger = logging.getLogger("UnrealMCP")
@@ -24,6 +25,7 @@ class ServiceManager:
         self._editor_service: Optional[EditorService] = None
         self._umg_service: Optional[UMGService] = None
         self._project_service: Optional[ProjectService] = None
+        self._registry_service: Optional[RegistryService] = None
 
     def initialize(self, host: str = "127.0.0.1", port: int = 55557) -> None:
         """Initialize the service manager with a connection."""
@@ -73,6 +75,15 @@ class ServiceManager:
                 raise RuntimeError("Service manager not initialized")
             self._project_service = ProjectService(self.connection)
         return self._project_service
+
+    @property
+    def registry_service(self) -> RegistryService:
+        """Get the Registry service."""
+        if self._registry_service is None:
+            if self.connection is None:
+                raise RuntimeError("Service manager not initialized")
+            self._registry_service = RegistryService(self.connection)
+        return self._registry_service
 
     def shutdown(self):
         """Shutdown the service manager and clean up resources."""
